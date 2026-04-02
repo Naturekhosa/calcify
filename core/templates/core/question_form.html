@@ -1,0 +1,26 @@
+<h1>{{ page_title }}</h1>
+
+<p><strong>Quiz:</strong> {{ quiz.title }}</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <p>
+        {{ form.question_text.label_tag }}<br>
+        {{ form.question_text }}
+    </p>
+
+    <p>
+        {{ form.question_type.label_tag }}<br>
+        {{ form.question_type }}
+    </p>
+
+    <p>
+        {{ form.marks.label_tag }}<br>
+        {{ form.marks }}
+    </p>
+
+    <button type="submit">Save Question</button>
+</form>
+
+<p><a href="{% url 'manage_quizzes' %}">← Back to Manage Quizzes</a></p>

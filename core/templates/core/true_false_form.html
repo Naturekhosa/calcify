@@ -1,0 +1,19 @@
+<h1>Set True/False Answer</h1>
+
+<p><strong>Question:</strong> {{ question.question_text }}</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <p>
+        <label>Correct Answer:</label>
+        <select name="correct_answer" required>
+            <option value="True">True</option>
+            <option value="False">False</option>
+        </select>
+    </p>
+
+    <button type="submit">Save Answer</button>
+</form>
+
+<p><a href="{% url 'manage_quizzes' %}">← Back to Manage Quizzes</a></p>

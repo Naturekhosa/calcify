@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Topic, Lesson
+from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice
 
 
 class CustomUserAdmin(UserAdmin):
@@ -17,3 +17,6 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Topic)
 admin.site.register(Lesson)
+admin.site.register(Quiz)
+admin.site.register(Question)
+admin.site.register(Choice)

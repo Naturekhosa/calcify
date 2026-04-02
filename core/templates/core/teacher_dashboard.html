@@ -9,11 +9,13 @@
 
 <p><a href="{% url 'manage_students' %}">Go to Manage Students</a></p>
 
+<h2>Manage Lessons</h2>
+<p><a href="{% url 'manage_lessons' %}">Go to Manage Lessons</a></p>
+
+<h2>Manage Quizzes</h2>
+<p><a href="{% url 'manage_quizzes' %}">Go to Manage Quizzes</a></p>
+
 <form method="post" action="{% url 'logout' %}">
     {% csrf_token %}
     <button type="submit">Logout</button>
 </form>
-
-
-<h2>Manage Lessons</h2>
-<p><a href="{% url 'manage_lessons' %}">Go to Manage Lessons</a></p>

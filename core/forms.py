@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from .models import CustomUser, Topic, Lesson
+from .models import CustomUser, Topic, Lesson,  Quiz, Question, Choice
 
 
 class StudentRegistrationForm(UserCreationForm):
@@ -33,4 +33,21 @@ class TopicForm(forms.ModelForm):
 class LessonForm(forms.ModelForm):
     class Meta:
         model = Lesson
-        fields = ['topic', 'title', 'description', 'content', 'video_link']       
+        fields = ['topic', 'title', 'description', 'content', 'video_link']
+
+
+class QuizForm(forms.ModelForm):
+    class Meta:
+        model = Quiz
+        fields = ['lesson', 'title', 'description', 'total_marks', 'time_limit', 'status']
+
+
+class QuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['question_text', 'question_type', 'marks']
+
+class ChoiceForm(forms.ModelForm):
+    class Meta:
+        model = Choice
+        fields = ['choice_text', 'is_correct']       

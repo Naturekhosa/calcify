@@ -1,0 +1,9 @@
+<h1>{{ page_title }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Quiz</button>
+</form>
+
+<p><a href="{% url 'manage_quizzes' %}">← Back to Manage Quizzes</a></p>

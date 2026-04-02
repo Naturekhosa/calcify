@@ -3,11 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.http import HttpResponseForbidden
 from django.db.models import Q
-from .models import CustomUser, Topic, Lesson
-from .forms import StudentRegistrationForm, TopicForm, LessonForm
 
-from .forms import StudentRegistrationForm
-from .models import CustomUser
+from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice
+from .forms import (
+    StudentRegistrationForm,
+    TopicForm,
+    LessonForm,
+    QuizForm,
+    QuestionForm,
+)
 
 
 def home(request):
@@ -78,8 +82,10 @@ def teacher_dashboard(request):
     return render(request, 'core/teacher_dashboard.html', context)
 
 
+# -------------------------
+# STUDENT MANAGEMENT VIEWS
+# -------------------------
 
-# student management views 
 @never_cache
 @login_required
 def manage_students(request):
@@ -161,6 +167,7 @@ def deactivate_student(request, student_id):
 
     return redirect('manage_students')
 
+
 @never_cache
 @login_required
 def reactivate_student(request, student_id):
@@ -189,7 +196,9 @@ def delete_student(request, student_id):
     return render(request, 'core/confirm_delete_student.html', {'student': student})
 
 
-# manage lessons views
+# -------------------------
+# MANAGE LESSONS VIEWS
+# -------------------------
 
 @never_cache
 @login_required
@@ -214,11 +223,9 @@ def manage_lessons(request):
             Q(lessons__content__icontains=search_query)
         ).distinct()
 
-    all_topics = Topic.objects.all()
-
     context = {
         'topics': topics,
-        'all_topics': all_topics,
+        'all_topics': Topic.objects.all(),
         'search_query': search_query,
         'topic_filter': topic_filter,
     }
@@ -240,7 +247,10 @@ def create_topic(request):
     else:
         form = TopicForm()
 
-    return render(request, 'core/topic_form.html', {'form': form, 'page_title': 'Create Topic'})
+    return render(request, 'core/topic_form.html', {
+        'form': form,
+        'page_title': 'Create Topic'
+    })
 
 
 @never_cache
@@ -259,7 +269,10 @@ def edit_topic(request, topic_id):
     else:
         form = TopicForm(instance=topic)
 
-    return render(request, 'core/topic_form.html', {'form': form, 'page_title': 'Edit Topic'})
+    return render(request, 'core/topic_form.html', {
+        'form': form,
+        'page_title': 'Edit Topic'
+    })
 
 
 @never_cache
@@ -284,6 +297,7 @@ def create_lesson(request):
         return HttpResponseForbidden("You are not allowed to access this page.")
 
     initial_topic = request.GET.get('topic')
+
     if request.method == 'POST':
         form = LessonForm(request.POST)
         if form.is_valid():
@@ -292,7 +306,10 @@ def create_lesson(request):
     else:
         form = LessonForm(initial={'topic': initial_topic})
 
-    return render(request, 'core/lesson_form.html', {'form': form, 'page_title': 'Create Lesson'})
+    return render(request, 'core/lesson_form.html', {
+        'form': form,
+        'page_title': 'Create Lesson'
+    })
 
 
 @never_cache
@@ -311,7 +328,10 @@ def edit_lesson(request, lesson_id):
     else:
         form = LessonForm(instance=lesson)
 
-    return render(request, 'core/lesson_form.html', {'form': form, 'page_title': 'Edit Lesson'})
+    return render(request, 'core/lesson_form.html', {
+        'form': form,
+        'page_title': 'Edit Lesson'
+    })
 
 
 @never_cache
@@ -328,3 +348,203 @@ def delete_lesson(request, lesson_id):
 
     return render(request, 'core/confirm_delete_lesson.html', {'lesson': lesson})
 
+
+# -------------------------
+# MANAGE QUIZZES VIEWS
+# -------------------------
+
+@never_cache
+@login_required
+def manage_quizzes(request):
+    if request.user.role != 'teacher':
+        return HttpResponseForbidden("You are not allowed to access this page.")
+
+    search_query = request.GET.get('q', '')
+    topic_filter = request.GET.get('topic', '')
+    lesson_filter = request.GET.get('lesson', '')
+    status_filter = request.GET.get('status', '')
+
+    lessons = Lesson.objects.select_related('topic').prefetch_related('quizzes__questions')
+
+    if topic_filter:
+        lessons = lessons.filter(topic_id=topic_filter)
+
+    if lesson_filter:
+        lessons = lessons.filter(id=lesson_filter)
+
+    if status_filter:
+        lessons = lessons.filter(quizzes__status=status_filter)
+
+    if search_query:
+        lessons = lessons.filter(
+            Q(title__icontains=search_query) |
+            Q(topic__name__icontains=search_query) |
+            Q(quizzes__title__icontains=search_query) |
+            Q(quizzes__description__icontains=search_query) |
+            Q(quizzes__questions__question_text__icontains=search_query)
+        ).distinct()
+
+    context = {
+        'lessons': lessons.distinct(),
+        'all_topics': Topic.objects.all(),
+        'all_lessons': Lesson.objects.select_related('topic').all(),
+        'search_query': search_query,
+        'topic_filter': topic_filter,
+        'lesson_filter': lesson_filter,
+        'status_filter': status_filter,
+    }
+
+    return render(request, 'core/manage_quizzes.html', context)
+
+
+@never_cache
+@login_required
+def create_quiz(request):
+    if request.user.role != 'teacher':
+        return HttpResponseForbidden("You are not allowed to access this page.")
+
+    initial_lesson = request.GET.get('lesson')
+
+    if request.method == 'POST':
+        form = QuizForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('manage_quizzes')
+    else:
+        form = QuizForm(initial={'lesson': initial_lesson})
+
+    return render(request, 'core/quiz_form.html', {
+        'form': form,
+        'page_title': 'Create Quiz'
+    })
+
+
+@never_cache
+@login_required
+def edit_quiz(request, quiz_id):
+    if request.user.role != 'teacher':
+        return HttpResponseForbidden("You are not allowed to access this page.")
+
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+
+    if request.method == 'POST':
+        form = QuizForm(request.POST, instance=quiz)
+        if form.is_valid():
+            form.save()
+            return redirect('manage_quizzes')
+    else:
+        form = QuizForm(instance=quiz)
+
+    return render(request, 'core/quiz_form.html', {
+        'form': form,
+        'page_title': 'Edit Quiz'
+    })
+
+
+@never_cache
+@login_required
+def delete_quiz(request, quiz_id):
+    if request.user.role != 'teacher':
+        return HttpResponseForbidden("You are not allowed to access this page.")
+
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+
+    if request.method == 'POST':
+        quiz.delete()
+        return redirect('manage_quizzes')
+
+    return render(request, 'core/confirm_delete_quiz.html', {'quiz': quiz})
+
+
+@never_cache
+@login_required
+def add_question(request, quiz_id):
+    if request.user.role != 'teacher':
+        return HttpResponseForbidden("You are not allowed to access this page.")
+
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+
+    if request.method == 'POST':
+        form = QuestionForm(request.POST)
+        if form.is_valid():
+            question = form.save(commit=False)
+            question.quiz = quiz
+            question.save()
+
+            if question.question_type == 'mcq':
+                return redirect('add_choices', question_id=question.id)
+            elif question.question_type == 'tf':
+                return redirect('add_true_false_answer', question_id=question.id)
+
+            return redirect('manage_quizzes')
+    else:
+        form = QuestionForm()
+
+    return render(request, 'core/question_form.html', {
+        'form': form,
+        'quiz': quiz,
+        'page_title': 'Add Question'
+    })
+
+
+@never_cache
+@login_required
+def add_choices(request, question_id):
+    if request.user.role != 'teacher':
+        return HttpResponseForbidden("You are not allowed to access this page.")
+
+    question = get_object_or_404(Question, id=question_id)
+
+    if request.method == 'POST':
+        Choice.objects.create(
+            question=question,
+            choice_text=request.POST.get('choice1'),
+            is_correct=request.POST.get('correct_choice') == '1'
+        )
+        Choice.objects.create(
+            question=question,
+            choice_text=request.POST.get('choice2'),
+            is_correct=request.POST.get('correct_choice') == '2'
+        )
+        Choice.objects.create(
+            question=question,
+            choice_text=request.POST.get('choice3'),
+            is_correct=request.POST.get('correct_choice') == '3'
+        )
+        Choice.objects.create(
+            question=question,
+            choice_text=request.POST.get('choice4'),
+            is_correct=request.POST.get('correct_choice') == '4'
+        )
+        return redirect('manage_quizzes')
+
+    return render(request, 'core/add_choices.html', {'question': question})
+
+
+@never_cache
+@login_required
+def add_true_false_answer(request, question_id):
+    if request.user.role != 'teacher':
+        return HttpResponseForbidden("You are not allowed to access this page.")
+
+    question = get_object_or_404(Question, id=question_id)
+
+    if request.method == 'POST':
+        correct_answer = request.POST.get('correct_answer')
+
+        Choice.objects.filter(question=question).delete()
+
+        Choice.objects.create(
+            question=question,
+            choice_text='True',
+            is_correct=(correct_answer == 'True')
+        )
+        Choice.objects.create(
+            question=question,
+            choice_text='False',
+            is_correct=(correct_answer == 'False')
+        )
+
+        return redirect('manage_quizzes')
+
+    return render(request, 'core/true_false_form.html', {'question': question})

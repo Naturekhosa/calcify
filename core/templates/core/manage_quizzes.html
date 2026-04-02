@@ -1,0 +1,104 @@
+<h1>Manage Quizzes</h1>
+
+<p><a href="{% url 'teacher_dashboard' %}">← Back to Teacher Dashboard</a></p>
+
+<p><a href="{% url 'create_quiz' %}">Create Quiz</a></p>
+
+<form method="get" style="margin-bottom: 20px;">
+
+    <!-- Search -->
+    <input
+        type="text"
+        name="q"
+        placeholder="Search by quiz title, lesson, topic, or keyword"
+        value="{{ search_query }}"
+    >
+    <button type="submit">Search</button>
+
+    <!-- Topic Filter -->
+    <select name="topic">
+        <option value="">All Topics</option>
+        {% for topic in all_topics %}
+            <option value="{{ topic.id }}" {% if topic_filter == topic.id|stringformat:"s" %}selected{% endif %}>
+                {{ topic.name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter Topic</button>
+
+    <!-- Lesson Filter -->
+    <select name="lesson">
+        <option value="">All Lessons</option>
+        {% for lesson in all_lessons %}
+            <option value="{{ lesson.id }}" {% if lesson_filter == lesson.id|stringformat:"s" %}selected{% endif %}>
+                {{ lesson.title }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter Lesson</button>
+
+    <!-- Status Filter -->
+    <select name="status">
+        <option value="">All Statuses</option>
+        <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+        <option value="published" {% if status_filter == 'published' %}selected{% endif %}>Published</option>
+    </select>
+    <button type="submit">Filter Status</button>
+
+    <a href="{% url 'manage_quizzes' %}">Reset</a>
+</form>
+
+<hr>
+
+{% for lesson in lessons %}
+    <div style="margin-bottom: 30px;">
+        <h2>Lesson: {{ lesson.title }}</h2>
+        <p><strong>Topic:</strong> {{ lesson.topic.name }}</p>
+
+        <p>
+            <a href="{% url 'create_quiz' %}?lesson={{ lesson.id }}">Add Quiz</a>
+        </p>
+
+        {% if lesson.quizzes.all %}
+            <ul>
+                {% for quiz in lesson.quizzes.all %}
+                    <li style="margin-bottom: 20px;">
+                        <strong>{{ quiz.title }}</strong><br>
+                        <strong>Description:</strong> {{ quiz.description }}<br>
+                        <strong>Status:</strong> {{ quiz.status }}<br>
+                        <strong>Total Marks:</strong> {{ quiz.total_marks }}<br>
+
+                        {% if quiz.time_limit %}
+                            <strong>Time Limit:</strong> {{ quiz.time_limit }} minutes<br>
+                        {% endif %}
+
+                        <p>
+                            <a href="{% url 'add_question' quiz.id %}">Add Question</a> |
+                            <a href="{% url 'edit_quiz' quiz.id %}">Edit Quiz</a> |
+                            <a href="{% url 'delete_quiz' quiz.id %}">Delete Quiz</a>
+                        </p>
+
+                        {% if quiz.questions.all %}
+                            <p><strong>Questions:</strong></p>
+                            <ul>
+                                {% for question in quiz.questions.all %}
+                                    <li>
+                                        {{ question.question_text }}
+                                        ({{ question.get_question_type_display }}, {{ question.marks }} marks)
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No questions added yet.</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No quizzes under this lesson yet.</p>
+        {% endif %}
+    </div>
+    <hr>
+{% empty %}
+    <p>No lessons or quizzes found.</p>
+{% endfor %}
