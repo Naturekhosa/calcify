@@ -1,5 +1,6 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.core.exceptions import ValidationError
 from .models import CustomUser
 
 
@@ -11,3 +12,14 @@ class StudentRegistrationForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2']
+
+
+class CustomLoginForm(AuthenticationForm):
+    def confirm_login_allowed(self, user):
+        super().confirm_login_allowed(user)
+
+        if user.role == 'student' and not user.is_approved:
+            raise ValidationError(
+                "Your account is still pending approval.",
+                code='not_approved',
+            )

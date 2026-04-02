@@ -1,6 +1,14 @@
 <h1>Teacher Dashboard</h1>
 <p>Welcome, {{ request.user.first_name }}!</p>
 
+<h2>Manage Students</h2>
+<p>Total students: {{ total_students }}</p>
+<p>Pending approvals: {{ pending_count }}</p>
+<p>Active students: {{ active_count }}</p>
+<p>Deactivated students: {{ deactivated_count }}</p>
+
+<p><a href="{% url 'manage_students' %}">Go to Manage Students</a></p>
+
 <form method="post" action="{% url 'logout' %}">
     {% csrf_token %}
     <button type="submit">Logout</button>
