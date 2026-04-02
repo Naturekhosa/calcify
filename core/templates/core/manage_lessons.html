@@ -1,0 +1,66 @@
+<h1>Manage Lessons</h1>
+
+
+
+<p>
+    <a href="{% url 'create_topic' %}">Create Topic</a> |
+    <a href="{% url 'create_lesson' %}">Create Lesson</a>
+</p>
+
+<form method="get">
+    <input
+        type="text"
+        name="q"
+        placeholder="Search by lesson title, topic, or keyword"
+        value="{{ search_query }}"
+    >
+    <button type="submit">Search</button>
+
+    <select name="topic">
+        <option value="">All Topics</option>
+        {% for topic in all_topics %}
+            <option value="{{ topic.id }}" {% if topic_filter == topic.id|stringformat:"s" %}selected{% endif %}>
+                {{ topic.name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+
+    <a href="{% url 'manage_lessons' %}">Reset</a>
+</form>
+
+<hr>
+
+{% for topic in topics %}
+    <h2>{{ topic.name }}</h2>
+    <p>{{ topic.description }}</p>
+
+    <p>
+        <a href="{% url 'create_lesson' %}?topic={{ topic.id }}">Add Lesson</a> |
+        <a href="{% url 'edit_topic' topic.id %}">Edit Topic</a> |
+        <a href="{% url 'delete_topic' topic.id %}">Delete Topic</a>
+    </p>
+
+    {% if topic.lessons.all %}
+        <ul>
+            {% for lesson in topic.lessons.all %}
+                <li>
+                    <strong>{{ lesson.title }}</strong><br>
+                    {{ lesson.description }}<br>
+
+                    <a href="{% url 'edit_lesson' lesson.id %}">Edit Lesson</a> |
+                    <a href="{% url 'delete_lesson' lesson.id %}">Delete Lesson</a>
+                </li>
+                <br>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No lessons under this topic yet.</p>
+    {% endif %}
+
+    <hr>
+{% empty %}
+    <p>No topics or lessons found.</p>
+{% endfor %}
+
+<p><a href="{% url 'teacher_dashboard' %}">← Back to Teacher Dashboard</a></p>

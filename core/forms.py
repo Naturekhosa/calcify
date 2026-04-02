@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from .models import CustomUser
+from .models import CustomUser, Topic, Lesson
 
 
 class StudentRegistrationForm(UserCreationForm):
@@ -23,3 +23,14 @@ class CustomLoginForm(AuthenticationForm):
                 "Your account is still pending approval.",
                 code='not_approved',
             )
+        
+class TopicForm(forms.ModelForm):
+    class Meta:
+        model = Topic
+        fields = ['name', 'description']
+
+
+class LessonForm(forms.ModelForm):
+    class Meta:
+        model = Lesson
+        fields = ['topic', 'title', 'description', 'content', 'video_link']       

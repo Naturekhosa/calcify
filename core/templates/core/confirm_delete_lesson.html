@@ -1,0 +1,13 @@
+<h1>Confirm Delete Lesson</h1>
+
+<p>
+    Are you sure you want to delete the lesson
+    <strong>{{ lesson.title }}</strong>?
+</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, Delete Lesson</button>
+</form>
+
+<p><a href="{% url 'manage_lessons' %}">Cancel</a></p>
