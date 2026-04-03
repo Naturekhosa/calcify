@@ -5,7 +5,7 @@ from django.http import HttpResponseForbidden
 from django.db.models import Q
 
 
-from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice, QuizAttempt
+from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice, QuizAttempt, LessonProgress
 from .forms import (
     StudentRegistrationForm,
     TopicForm,
@@ -602,15 +602,20 @@ def student_lesson_detail(request, lesson_id):
         return redirect('login')
 
     lesson = get_object_or_404(Lesson, id=lesson_id)
-    quizzes = lesson.quizzes.all()
+    quizzes = lesson.quizzes.filter(status='published')
+
+    progress, created = LessonProgress.objects.get_or_create(
+        student=request.user,
+        lesson=lesson
+    )
 
     context = {
         'lesson': lesson,
         'quizzes': quizzes,
+        'progress': progress,
     }
 
     return render(request, 'core/student_lesson_detail.html', context)
-
 
 @never_cache
 @login_required
@@ -706,3 +711,137 @@ def quiz_result(request, quiz_id):
         'quiz': quiz,
         'attempt': attempt
     })
+
+@never_cache
+@login_required
+def mark_lesson_complete(request, lesson_id):
+    if request.user.role != 'student':
+        return redirect('login')
+
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+
+    progress, created = LessonProgress.objects.get_or_create(
+        student=request.user,
+        lesson=lesson
+    )
+    progress.completed = True
+    progress.save()
+
+    return redirect('student_lesson_detail', lesson_id=lesson.id)
+
+@never_cache
+@login_required
+def student_progress(request):
+    if request.user.role != 'student':
+        return redirect('login')
+
+    search_query = request.GET.get('q', '')
+    topic_filter = request.GET.get('topic', '')
+    lesson_filter = request.GET.get('lesson', '')
+    quiz_filter = request.GET.get('quiz', '')
+
+    student = request.user
+
+    all_lessons = Lesson.objects.select_related('topic').all()
+    all_quizzes = Quiz.objects.filter(status='published').select_related('lesson__topic')
+    all_topics = Topic.objects.all()
+
+    lesson_progress = LessonProgress.objects.filter(student=student, completed=True)
+    attempts = QuizAttempt.objects.filter(student=student).select_related('quiz__lesson__topic')
+
+    if topic_filter:
+        lesson_progress = lesson_progress.filter(lesson__topic_id=topic_filter)
+        attempts = attempts.filter(quiz__lesson__topic_id=topic_filter)
+
+    if lesson_filter:
+        lesson_progress = lesson_progress.filter(lesson_id=lesson_filter)
+        attempts = attempts.filter(quiz__lesson_id=lesson_filter)
+
+    if quiz_filter:
+        attempts = attempts.filter(quiz_id=quiz_filter)
+
+    if search_query:
+        lesson_progress = lesson_progress.filter(
+            Q(lesson__title__icontains=search_query) |
+            Q(lesson__topic__name__icontains=search_query)
+        )
+
+        attempts = attempts.filter(
+            Q(quiz__title__icontains=search_query) |
+            Q(quiz__lesson__title__icontains=search_query) |
+            Q(quiz__lesson__topic__name__icontains=search_query)
+        )
+
+    total_lessons = Lesson.objects.count()
+    total_lessons_completed = LessonProgress.objects.filter(student=student, completed=True).count()
+
+    total_quizzes_completed = QuizAttempt.objects.filter(student=student).count()
+
+    all_attempts = QuizAttempt.objects.filter(student=student)
+    average_score = round(
+        sum(a.percentage for a in all_attempts) / all_attempts.count(), 2
+    ) if all_attempts.exists() else 0
+
+    latest_attempt = all_attempts.order_by('-date_attempted').first()
+    latest_score = latest_attempt.percentage if latest_attempt else 0
+
+    # Progress per topic
+    topic_progress = []
+    for topic in Topic.objects.all():
+        topic_lessons = Lesson.objects.filter(topic=topic)
+        completed_count = LessonProgress.objects.filter(
+            student=student,
+            lesson__topic=topic,
+            completed=True
+        ).count()
+
+        topic_progress.append({
+            'topic': topic,
+            'completed': completed_count,
+            'total': topic_lessons.count(),
+        })
+
+    # Quiz performance list
+    quiz_performance = attempts.order_by('-date_attempted')
+
+    # Performance by topic
+    performance_by_topic = []
+    for topic in Topic.objects.all():
+        topic_attempts = QuizAttempt.objects.filter(student=student, quiz__lesson__topic=topic)
+        if topic_attempts.exists():
+            avg = round(
+                sum(a.percentage for a in topic_attempts) / topic_attempts.count(), 2
+            )
+            performance_by_topic.append({
+                'topic': topic.name,
+                'average': avg,
+            })
+
+    # Weak areas
+    weak_topics = [item for item in performance_by_topic if item['average'] < 50]
+    weak_quizzes = QuizAttempt.objects.filter(student=student, percentage__lt=50)
+
+    context = {
+        'total_lessons_completed': total_lessons_completed,
+        'total_lessons': total_lessons,
+        'total_quizzes_completed': total_quizzes_completed,
+        'average_score': average_score,
+        'latest_score': latest_score,
+
+        'topic_progress': topic_progress,
+        'quiz_performance': quiz_performance,
+        'performance_by_topic': performance_by_topic,
+        'weak_topics': weak_topics,
+        'weak_quizzes': weak_quizzes,
+
+        'all_topics': all_topics,
+        'all_lessons': all_lessons,
+        'all_quizzes': all_quizzes,
+
+        'search_query': search_query,
+        'topic_filter': topic_filter,
+        'lesson_filter': lesson_filter,
+        'quiz_filter': quiz_filter,
+    }
+
+    return render(request, 'core/student_progress.html', context)

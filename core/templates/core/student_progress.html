@@ -1,0 +1,123 @@
+<h1>My Progress</h1>
+
+<p><a href="{% url 'student_dashboard' %}">← Back to Dashboard</a></p>
+
+<form method="get">
+    <input type="text" name="q" placeholder="Search by topic, lesson, quiz" value="{{ search_query }}">
+    <button type="submit">Search</button>
+
+    <select name="topic">
+        <option value="">All Topics</option>
+        {% for topic in all_topics %}
+            <option value="{{ topic.id }}" {% if topic_filter == topic.id|stringformat:"s" %}selected{% endif %}>
+                {{ topic.name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter Topic</button>
+
+    <select name="lesson">
+        <option value="">All Lessons</option>
+        {% for lesson in all_lessons %}
+            <option value="{{ lesson.id }}" {% if lesson_filter == lesson.id|stringformat:"s" %}selected{% endif %}>
+                {{ lesson.title }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter Lesson</button>
+
+    <select name="quiz">
+        <option value="">All Quizzes</option>
+        {% for quiz in all_quizzes %}
+            <option value="{{ quiz.id }}" {% if quiz_filter == quiz.id|stringformat:"s" %}selected{% endif %}>
+                {{ quiz.title }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter Quiz</button>
+
+    <a href="{% url 'student_progress' %}">Reset</a>
+</form>
+
+<hr>
+
+<h2>Overview</h2>
+<p><strong>Total lessons completed:</strong> {{ total_lessons_completed }} / {{ total_lessons }}</p>
+<p><strong>Total quizzes completed:</strong> {{ total_quizzes_completed }}</p>
+<p><strong>Average score:</strong> {{ average_score }}%</p>
+<p><strong>Latest quiz score:</strong> {{ latest_score }}%</p>
+
+<hr>
+
+<h2>Lesson Progress</h2>
+{% for item in topic_progress %}
+    <p><strong>{{ item.topic.name }}</strong>: {{ item.completed }} / {{ item.total }} lessons completed</p>
+{% endfor %}
+
+<hr>
+
+<h2>Quiz Performance</h2>
+{% if quiz_performance %}
+    <ul>
+        {% for attempt in quiz_performance %}
+            <li>
+                {{ attempt.quiz.title }} → {{ attempt.percentage }}%
+                {% if attempt.performance_change %}
+                    ({{ attempt.performance_change }})
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No quizzes taken yet.</p>
+{% endif %}
+
+<hr>
+
+<h2>Performance by Topic</h2>
+{% if performance_by_topic %}
+    <ul>
+        {% for item in performance_by_topic %}
+            <li>{{ item.topic }} → {{ item.average }}%</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No topic performance data yet.</p>
+{% endif %}
+
+<hr>
+
+<h2>Weak Areas</h2>
+{% if weak_topics %}
+    <p><strong>Topics needing improvement:</strong></p>
+    <ul>
+        {% for topic in weak_topics %}
+            <li>You are struggling with {{ topic.topic }} ({{ topic.average }}%)</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No weak topics identified yet.</p>
+{% endif %}
+
+{% if weak_quizzes %}
+    <p><strong>Low-scoring quizzes:</strong></p>
+    <ul>
+        {% for attempt in weak_quizzes %}
+            <li>{{ attempt.quiz.title }} → {{ attempt.percentage }}%</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<hr>
+
+<h2>Improvement Tracking</h2>
+{% for attempt in quiz_performance %}
+    {% if attempt.previous_score %}
+        <p>
+            {{ attempt.quiz.title }}:
+            Previous {{ attempt.previous_score }} →
+            Current {{ attempt.score }}
+            ({{ attempt.performance_change }})
+        </p>
+    {% endif %}
+{% endfor %}

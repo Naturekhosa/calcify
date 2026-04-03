@@ -1,6 +1,9 @@
 <h1>Welcome, {{ request.user.first_name }}</h1>
 
-<p><a href="{% url 'logout' %}">Logout</a></p>
+<p><form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Logout</button>
+</form></p>
 
 <hr>
 
@@ -24,5 +27,5 @@
 </p>
 
 <p>
-    <a href="#">My Progress (coming next)</a>
+     <a href="{% url 'student_progress' %}">My Progress</a>
 </p>

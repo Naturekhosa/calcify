@@ -6,6 +6,8 @@
 
 <!-- VIDEO -->
 {% if lesson.video_link %}
+    <h3>Watch Lesson</h3>
+
     <iframe width="560" height="315"
         src="https://www.youtube.com/embed/{{ lesson.video_link|cut:'https://www.youtube.com/watch?v=' }}"
         frameborder="0"
@@ -28,6 +30,21 @@
 
 <hr>
 
+<!-- LESSON COMPLETION -->
+<h3>Progress</h3>
+
+{% if progress.completed %}
+    <p style="color: green;"><strong>✅ Lesson completed</strong></p>
+{% else %}
+    <p>
+        <a href="{% url 'mark_lesson_complete' lesson.id %}">
+            Mark Lesson as Complete
+        </a>
+    </p>
+{% endif %}
+
+<hr>
+
 <!-- QUIZZES -->
 <h3>Related Quizzes</h3>
 
@@ -35,7 +52,13 @@
     <ul>
         {% for quiz in quizzes %}
             <li>
-                {{ quiz.title }} ({{ quiz.status }})
+                <strong>{{ quiz.title }}</strong>
+
+                {% if quiz.status == 'published' %}
+                    - <a href="{% url 'take_quiz' quiz.id %}">Start Quiz</a>
+                {% else %}
+                    - (Draft - not available)
+                {% endif %}
             </li>
         {% endfor %}
     </ul>

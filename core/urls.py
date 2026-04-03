@@ -57,4 +57,8 @@ urlpatterns = [
     path('student/quizzes/', views.student_quizzes, name='student_quizzes'),
     path('student/quizzes/<int:quiz_id>/take/', views.take_quiz, name='take_quiz'),
     path('student/quizzes/<int:quiz_id>/result/', views.quiz_result, name='quiz_result'),
+
+    path('student/progress/', views.student_progress, name='student_progress'),
+    path('student/lessons/<int:lesson_id>/complete/', views.mark_lesson_complete, name='mark_lesson_complete'),
+
 ]
