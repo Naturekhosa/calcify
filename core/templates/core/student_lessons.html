@@ -1,0 +1,48 @@
+<h1>My Lessons</h1>
+
+<p><a href="{% url 'student_dashboard' %}">← Back to Dashboard</a></p>
+
+<form method="get">
+
+    <input
+        type="text"
+        name="q"
+        placeholder="Search lessons..."
+        value="{{ search_query }}"
+    >
+    <button type="submit">Search</button>
+
+    <select name="topic">
+        <option value="">All Topics</option>
+        {% for topic in all_topics %}
+            <option value="{{ topic.id }}" {% if topic_filter == topic.id|stringformat:"s" %}selected{% endif %}>
+                {{ topic.name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+
+</form>
+
+<hr>
+
+{% for topic in topics %}
+    <h2>{{ topic.name }}</h2>
+    <p>{{ topic.description }}</p>
+
+    {% if topic.lessons.all %}
+        <ul>
+            {% for lesson in topic.lessons.all %}
+                <li>
+                    <a href="{% url 'student_lesson_detail' lesson.id %}">
+                        {{ lesson.title }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No lessons yet.</p>
+    {% endif %}
+
+    <hr>
+{% endfor %}

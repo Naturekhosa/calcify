@@ -4,7 +4,8 @@ from django.views.decorators.cache import never_cache
 from django.http import HttpResponseForbidden
 from django.db.models import Q
 
-from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice
+
+from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice, QuizAttempt
 from .forms import (
     StudentRegistrationForm,
     TopicForm,
@@ -47,7 +48,16 @@ def dashboard_redirect(request):
 def student_dashboard(request):
     if request.user.role != 'student':
         return redirect('login')
-    return render(request, 'core/student_dashboard.html')
+
+    total_lessons = Lesson.objects.count()
+    total_quizzes = Quiz.objects.count()
+
+    context = {
+        'total_lessons': total_lessons,
+        'total_quizzes': total_quizzes,
+    }
+
+    return render(request, 'core/student_dashboard.html', context)
 
 
 @never_cache
@@ -548,3 +558,151 @@ def add_true_false_answer(request, question_id):
         return redirect('manage_quizzes')
 
     return render(request, 'core/true_false_form.html', {'question': question})
+
+
+# -------------------------
+# STUDENT - MY LESSONS
+# -------------------------
+
+@never_cache
+@login_required
+def student_lessons(request):
+    if request.user.role != 'student':
+        return redirect('login')
+
+    search_query = request.GET.get('q', '')
+    topic_filter = request.GET.get('topic', '')
+
+    topics = Topic.objects.all().prefetch_related('lessons')
+
+    if topic_filter:
+        topics = topics.filter(id=topic_filter)
+
+    if search_query:
+        topics = topics.filter(
+            Q(name__icontains=search_query) |
+            Q(lessons__title__icontains=search_query) |
+            Q(lessons__content__icontains=search_query)
+        ).distinct()
+
+    context = {
+        'topics': topics,
+        'all_topics': Topic.objects.all(),
+        'search_query': search_query,
+        'topic_filter': topic_filter,
+    }
+
+    return render(request, 'core/student_lessons.html', context)
+
+
+@never_cache
+@login_required
+def student_lesson_detail(request, lesson_id):
+    if request.user.role != 'student':
+        return redirect('login')
+
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    quizzes = lesson.quizzes.all()
+
+    context = {
+        'lesson': lesson,
+        'quizzes': quizzes,
+    }
+
+    return render(request, 'core/student_lesson_detail.html', context)
+
+
+@never_cache
+@login_required
+def student_quizzes(request):
+    if request.user.role != 'student':
+        return redirect('login')
+
+    quizzes = Quiz.objects.filter(status='published').select_related('lesson__topic')
+
+    attempts = QuizAttempt.objects.filter(student=request.user)
+    attempts_dict = {a.quiz.id: a for a in attempts}
+
+    # Attach attempt to each quiz
+    for quiz in quizzes:
+        quiz.attempt = attempts_dict.get(quiz.id)
+
+    context = {
+        'quizzes': quizzes,
+    }
+
+    return render(request, 'core/student_quizzes.html', context)
+
+@never_cache
+@login_required
+def take_quiz(request, quiz_id):
+    if request.user.role != 'student':
+        return redirect('login')
+
+    quiz = get_object_or_404(Quiz, id=quiz_id, status='published')
+    questions = quiz.questions.all().prefetch_related('choices')
+
+    if request.method == 'POST':
+        score = 0
+        total = 0
+
+        for question in questions:
+            selected = request.POST.get(str(question.id))
+            total += question.marks
+
+            if selected:
+                choice = Choice.objects.get(id=selected)
+                if choice.is_correct:
+                    score += question.marks
+
+        percentage = (score / total) * 100 if total > 0 else 0
+
+        # Get previous attempt
+        attempt, created = QuizAttempt.objects.get_or_create(
+            student=request.user,
+            quiz=quiz,
+            defaults={
+                'score': score,
+                'total_marks': total,
+                'percentage': percentage
+            }
+        )
+
+        if not created:
+            previous = attempt.score
+
+            # Determine improvement
+            if score > previous:
+                change = "Improved"
+            elif score == previous:
+                change = "Same"
+            else:
+                change = "Decreased"
+
+            attempt.previous_score = previous
+            attempt.score = score
+            attempt.total_marks = total
+            attempt.percentage = percentage
+            attempt.performance_change = change
+            attempt.save()
+
+        return redirect('quiz_result', quiz_id=quiz.id)
+
+    return render(request, 'core/take_quiz.html', {
+        'quiz': quiz,
+        'questions': questions
+    })
+
+@never_cache
+@login_required
+def quiz_result(request, quiz_id):
+    if request.user.role != 'student':
+        return redirect('login')
+
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    attempt = QuizAttempt.objects.get(student=request.user, quiz=quiz)
+
+    return render(request, 'core/quiz_result.html', {
+        'quiz': quiz,
+        'attempt': attempt
+    })

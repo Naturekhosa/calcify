@@ -49,4 +49,12 @@ urlpatterns = [
     path('teacher/questions/<int:question_id>/choices/add/', views.add_choices, name='add_choices'),
     path('teacher/questions/<int:question_id>/true-false/add/', views.add_true_false_answer, name='add_true_false_answer'),
 
+
+    # STUDENT LESSONS
+    path('student/lessons/', views.student_lessons, name='student_lessons'),
+    path('student/lessons/<int:lesson_id>/', views.student_lesson_detail, name='student_lesson_detail'),
+
+    path('student/quizzes/', views.student_quizzes, name='student_quizzes'),
+    path('student/quizzes/<int:quiz_id>/take/', views.take_quiz, name='take_quiz'),
+    path('student/quizzes/<int:quiz_id>/result/', views.quiz_result, name='quiz_result'),
 ]

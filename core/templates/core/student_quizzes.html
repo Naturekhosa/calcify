@@ -1,0 +1,22 @@
+<h1>My Quizzes</h1>
+
+<p><a href="{% url 'student_dashboard' %}">← Back</a></p>
+
+{% for quiz in quizzes %}
+    <div style="margin-bottom:20px; border:1px solid #ccc; padding:10px;">
+        <h3>{{ quiz.title }}</h3>
+        <p>Lesson: {{ quiz.lesson.title }}</p>
+        <p>Topic: {{ quiz.lesson.topic.name }}</p>
+
+        {% if quiz.attempt %}
+            <p>Latest Score: {{ quiz.attempt.percentage }}%</p>
+            <p>Status: {{ quiz.attempt.performance_change }}</p>
+
+            <a href="{% url 'take_quiz' quiz.id %}">Reattempt</a>
+            |
+            <a href="{% url 'quiz_result' quiz.id %}">View Results</a>
+        {% else %}
+            <a href="{% url 'take_quiz' quiz.id %}">Start Quiz</a>
+        {% endif %}
+    </div>
+{% endfor %}

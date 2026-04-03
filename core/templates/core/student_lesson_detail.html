@@ -1,0 +1,44 @@
+<h1>{{ lesson.title }}</h1>
+
+<p><a href="{% url 'student_lessons' %}">← Back to Lessons</a></p>
+
+<hr>
+
+<!-- VIDEO -->
+{% if lesson.video_link %}
+    <iframe width="560" height="315"
+        src="https://www.youtube.com/embed/{{ lesson.video_link|cut:'https://www.youtube.com/watch?v=' }}"
+        frameborder="0"
+        allowfullscreen>
+    </iframe>
+
+    <p>
+        If video doesn't load:
+        <a href="{{ lesson.video_link }}" target="_blank">
+            Watch on YouTube
+        </a>
+    </p>
+{% endif %}
+
+<hr>
+
+<!-- NOTES -->
+<h3>Lesson Notes</h3>
+<p>{{ lesson.content }}</p>
+
+<hr>
+
+<!-- QUIZZES -->
+<h3>Related Quizzes</h3>
+
+{% if quizzes %}
+    <ul>
+        {% for quiz in quizzes %}
+            <li>
+                {{ quiz.title }} ({{ quiz.status }})
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No quizzes available for this lesson yet.</p>
+{% endif %}

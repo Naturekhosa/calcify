@@ -76,3 +76,25 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.choice_text
+    
+
+class QuizAttempt(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+
+    score = models.PositiveIntegerField()
+    total_marks = models.PositiveIntegerField()
+    percentage = models.FloatField()
+
+    previous_score = models.PositiveIntegerField(null=True, blank=True)
+
+    performance_change = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )  # improved / same / decreased
+
+    date_attempted = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.student.username} - {self.quiz.title}"

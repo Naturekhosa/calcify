@@ -1,0 +1,18 @@
+<h1>{{ quiz.title }} - Results</h1>
+
+<p>Lesson: {{ quiz.lesson.title }}</p>
+<p>Topic: {{ quiz.lesson.topic.name }}</p>
+
+<hr>
+
+<p><strong>Score:</strong> {{ attempt.score }}/{{ attempt.total_marks }}</p>
+<p><strong>Percentage:</strong> {{ attempt.percentage }}%</p>
+
+{% if attempt.previous_score %}
+    <p><strong>Previous Score:</strong> {{ attempt.previous_score }}</p>
+    <p><strong>Performance:</strong> {{ attempt.performance_change }}</p>
+{% endif %}
+
+<hr>
+
+<a href="{% url 'take_quiz' quiz.id %}">Reattempt Quiz</a>
