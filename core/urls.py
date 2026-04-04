@@ -60,5 +60,10 @@ urlpatterns = [
 
     path('student/progress/', views.student_progress, name='student_progress'),
     path('student/lessons/<int:lesson_id>/complete/', views.mark_lesson_complete, name='mark_lesson_complete'),
+    
+    path('teacher/performance-reports/', views.teacher_performance_reports, name='teacher_performance_reports'),
+
+
+
 
 ]

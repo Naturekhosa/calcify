@@ -82,11 +82,39 @@ def teacher_dashboard(request):
         is_active=False
     ).count()
 
+    attempts = QuizAttempt.objects.select_related('student', 'quiz__lesson__topic').all()
+
+    if attempts.exists():
+        average_class_score = round(
+            sum(a.percentage for a in attempts) / attempts.count(), 2
+        )
+    else:
+        average_class_score = 0
+
+    student_averages = []
+    students = CustomUser.objects.filter(role='student')
+    for student in students:
+        student_attempts = attempts.filter(student=student)
+        if student_attempts.exists():
+            avg = sum(a.percentage for a in student_attempts) / student_attempts.count()
+            student_averages.append((student, round(avg, 2)))
+
+    students_at_risk = sum(1 for _, avg in student_averages if avg < 50)
+
+    if student_averages:
+        top_student, top_score = max(student_averages, key=lambda x: x[1])
+        top_performer = f"{top_student.first_name} {top_student.last_name} ({top_score}%)"
+    else:
+        top_performer = "No data yet"
+
     context = {
         'total_students': total_students,
         'pending_count': pending_count,
         'active_count': active_count,
         'deactivated_count': deactivated_count,
+        'average_class_score': average_class_score,
+        'students_at_risk': students_at_risk,
+        'top_performer': top_performer,
     }
 
     return render(request, 'core/teacher_dashboard.html', context)
@@ -845,3 +873,150 @@ def student_progress(request):
     }
 
     return render(request, 'core/student_progress.html', context)
+
+
+@never_cache
+@login_required
+def teacher_performance_reports(request):
+    if request.user.role != 'teacher':
+        return redirect('login')
+
+    students = CustomUser.objects.filter(role='student', is_active=True)
+    attempts = QuizAttempt.objects.select_related('student', 'quiz__lesson__topic').all()
+    topics = Topic.objects.all()
+    lessons = Lesson.objects.select_related('topic').all()
+    quizzes = Quiz.objects.all()
+
+    # -------------------------
+    # OVERVIEW
+    # -------------------------
+    average_class_score = round(
+        sum(a.percentage for a in attempts) / attempts.count(), 2
+    ) if attempts.exists() else 0
+
+    total_quizzes_taken = attempts.count()
+
+    student_rows = []
+    for student in students:
+        student_attempts = attempts.filter(student=student)
+        completed_lessons = LessonProgress.objects.filter(student=student, completed=True).count()
+
+        if student_attempts.exists():
+            avg_score = round(
+                sum(a.percentage for a in student_attempts) / student_attempts.count(), 2
+            )
+        else:
+            avg_score = 0
+
+        # weak topic
+        weak_topic = "None"
+        topic_scores = []
+        for topic in topics:
+            topic_attempts = student_attempts.filter(quiz__lesson__topic=topic)
+            if topic_attempts.exists():
+                avg_topic = sum(a.percentage for a in topic_attempts) / topic_attempts.count()
+                topic_scores.append((topic.name, avg_topic))
+
+        if topic_scores:
+            weak_topic = min(topic_scores, key=lambda x: x[1])[0]
+
+        if avg_score < 50:
+            status = "At Risk"
+        elif avg_score < 75:
+            status = "Needs Improvement"
+        else:
+            status = "Doing Well"
+
+        student_rows.append({
+            'student': student,
+            'avg_score': avg_score,
+            'quizzes_taken': student_attempts.count(),
+            'completed_lessons': completed_lessons,
+            'weak_topic': weak_topic,
+            'status': status,
+        })
+
+    # top performer
+    if student_rows:
+        top_performer_row = max(student_rows, key=lambda x: x['avg_score'])
+        top_performer = f"{top_performer_row['student'].first_name} {top_performer_row['student'].last_name} ({top_performer_row['avg_score']}%)"
+    else:
+        top_performer = "No data yet"
+
+    students_at_risk = len([row for row in student_rows if row['status'] == 'At Risk'])
+
+    # -------------------------
+    # ANALYTICS
+    # -------------------------
+    performance_by_topic = []
+    for topic in topics:
+        topic_attempts = attempts.filter(quiz__lesson__topic=topic)
+        if topic_attempts.exists():
+            avg = round(
+                sum(a.percentage for a in topic_attempts) / topic_attempts.count(), 2
+            )
+        else:
+            avg = 0
+        performance_by_topic.append({
+            'name': topic.name,
+            'average': avg,
+        })
+
+    performance_by_lesson = []
+    for lesson in lessons:
+        lesson_attempts = attempts.filter(quiz__lesson=lesson)
+        if lesson_attempts.exists():
+            avg = round(
+                sum(a.percentage for a in lesson_attempts) / lesson_attempts.count(), 2
+            )
+        else:
+            avg = 0
+        performance_by_lesson.append({
+            'name': lesson.title,
+            'average': avg,
+        })
+
+    best_topic = max(performance_by_topic, key=lambda x: x['average']) if performance_by_topic else None
+    weakest_topic = min(performance_by_topic, key=lambda x: x['average']) if performance_by_topic else None
+
+    quiz_failure_rates = []
+    for quiz in quizzes:
+        quiz_attempts = attempts.filter(quiz=quiz)
+        if quiz_attempts.exists():
+            avg = round(
+                sum(a.percentage for a in quiz_attempts) / quiz_attempts.count(), 2
+            )
+            quiz_failure_rates.append((quiz.title, avg))
+
+    most_failed_quiz = min(quiz_failure_rates, key=lambda x: x[1]) if quiz_failure_rates else None
+
+    # -------------------------
+    # REPORTS
+    # -------------------------
+    report_cards = [
+        {'title': 'Student Report', 'description': 'View student-by-student performance summaries.'},
+        {'title': 'Class Report', 'description': 'View overall class performance and averages.'},
+        {'title': 'Topic Report', 'description': 'View topic-based performance summaries.'},
+        {'title': 'Lesson Report', 'description': 'View lesson-based performance summaries.'},
+        {'title': 'Quiz Report', 'description': 'View quiz summaries and outcomes.'},
+        {'title': 'Overall Progress Report', 'description': 'View overall platform learning progress.'},
+    ]
+
+    context = {
+        'average_class_score': average_class_score,
+        'students_at_risk': students_at_risk,
+        'top_performer': top_performer,
+        'total_quizzes_taken': total_quizzes_taken,
+        'best_topic': best_topic,
+        'weakest_topic': weakest_topic,
+
+        'student_rows': student_rows,
+
+        'performance_by_topic': performance_by_topic,
+        'performance_by_lesson': performance_by_lesson,
+        'most_failed_quiz': most_failed_quiz,
+
+        'report_cards': report_cards,
+    }
+
+    return render(request, 'core/teacher_performance_reports.html', context)

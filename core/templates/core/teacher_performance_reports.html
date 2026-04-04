@@ -1,0 +1,96 @@
+<h1>Performance & Reports</h1>
+
+<p><a href="{% url 'teacher_dashboard' %}">← Back to Teacher Dashboard</a></p>
+
+<hr>
+
+<h2>Overview</h2>
+<p><strong>Average Class Score:</strong> {{ average_class_score }}%</p>
+<p><strong>Students At Risk:</strong> {{ students_at_risk }}</p>
+<p><strong>Top Performer:</strong> {{ top_performer }}</p>
+<p><strong>Total Quizzes Taken:</strong> {{ total_quizzes_taken }}</p>
+<p><strong>Best Performing Topic:</strong>
+    {% if best_topic %}{{ best_topic.name }} ({{ best_topic.average }}%){% else %}No data{% endif %}
+</p>
+<p><strong>Weakest Topic:</strong>
+    {% if weakest_topic %}{{ weakest_topic.name }} ({{ weakest_topic.average }}%){% else %}No data{% endif %}
+</p>
+
+<hr>
+
+<h2>Student Performance</h2>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Student</th>
+        <th>Avg Score</th>
+        <th>Quizzes Taken</th>
+        <th>Completed Lessons</th>
+        <th>Weak Topic</th>
+        <th>Status</th>
+    </tr>
+    {% for row in student_rows %}
+    <tr>
+        <td>{{ row.student.first_name }} {{ row.student.last_name }}</td>
+        <td>{{ row.avg_score }}%</td>
+        <td>{{ row.quizzes_taken }}</td>
+        <td>{{ row.completed_lessons }}</td>
+        <td>{{ row.weak_topic }}</td>
+        <td>{{ row.status }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">No student performance data available.</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<h2>Analytics</h2>
+
+<h3>Performance by Topic</h3>
+<ul>
+    {% for item in performance_by_topic %}
+        <li>{{ item.name }} → {{ item.average }}%</li>
+    {% empty %}
+        <li>No topic analytics yet.</li>
+    {% endfor %}
+</ul>
+
+<h3>Performance by Lesson</h3>
+<ul>
+    {% for item in performance_by_lesson %}
+        <li>{{ item.name }} → {{ item.average }}%</li>
+    {% empty %}
+        <li>No lesson analytics yet.</li>
+    {% endfor %}
+</ul>
+
+<h3>Common Weak Area</h3>
+<p>
+    {% if weakest_topic %}
+        Most students struggle with <strong>{{ weakest_topic.name }}</strong>.
+    {% else %}
+        No weak area identified yet.
+    {% endif %}
+</p>
+
+<h3>Most Failed Quiz</h3>
+<p>
+    {% if most_failed_quiz %}
+        {{ most_failed_quiz.0 }} (Average: {{ most_failed_quiz.1 }}%)
+    {% else %}
+        No quiz failure data yet.
+    {% endif %}
+</p>
+
+<hr>
+
+<h2>Reports</h2>
+{% for report in report_cards %}
+    <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+        <h3>{{ report.title }}</h3>
+        <p>{{ report.description }}</p>
+        <button type="button">View</button>
+    </div>
+{% endfor %}

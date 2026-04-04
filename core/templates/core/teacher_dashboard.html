@@ -15,6 +15,15 @@
 <h2>Manage Quizzes</h2>
 <p><a href="{% url 'manage_quizzes' %}">Go to Manage Quizzes</a></p>
 
+<h2>Performance Snapshot</h2>
+<p><strong>Average Class Score:</strong> {{ average_class_score }}%</p>
+<p><strong>Students At Risk:</strong> {{ students_at_risk }}</p>
+<p><strong>Top Performer:</strong> {{ top_performer }}</p>
+
+<p>
+    <a href="{% url 'teacher_performance_reports' %}">View Full Reports</a>
+</p>
+
 <form method="post" action="{% url 'logout' %}">
     {% csrf_token %}
     <button type="submit">Logout</button>
