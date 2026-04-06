@@ -1,126 +1,236 @@
-<h1>Performance & Reports</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance & Reports | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-<p><a href="{% url 'teacher_dashboard' %}">← Back to Teacher Dashboard</a></p>
+<body class="bg-gray-100 text-gray-800">
 
-<hr>
+<div class="max-w-7xl mx-auto p-6">
 
-<h2>Overview</h2>
-<p><strong>Average Class Score:</strong> {{ average_class_score }}%</p>
-<p><strong>Students At Risk:</strong> {{ students_at_risk }}</p>
-<p><strong>Top Performer:</strong> {{ top_performer }}</p>
-<p><strong>Total Quizzes Taken:</strong> {{ total_quizzes_taken }}</p>
-<p><strong>Best Performing Topic:</strong>
-    {% if best_topic %}{{ best_topic.name }} ({{ best_topic.average }}%){% else %}No data{% endif %}
-</p>
-<p><strong>Weakest Topic:</strong>
-    {% if weakest_topic %}{{ weakest_topic.name }} ({{ weakest_topic.average }}%){% else %}No data{% endif %}
-</p>
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-700">Performance & Reports</h1>
+            <p class="text-sm text-gray-600">Monitor class performance, analyze weak areas, and view detailed reports</p>
+        </div>
 
-<hr>
-
-<h2>Student Performance</h2>
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Student</th>
-        <th>Avg Score</th>
-        <th>Quizzes Taken</th>
-        <th>Completed Lessons</th>
-        <th>Weak Topic</th>
-        <th>Status</th>
-    </tr>
-    {% for row in student_rows %}
-    <tr>
-        <td>{{ row.student.first_name }} {{ row.student.last_name }}</td>
-        <td>{{ row.avg_score }}%</td>
-        <td>{{ row.quizzes_taken }}</td>
-        <td>{{ row.completed_lessons }}</td>
-        <td>{{ row.weak_topic }}</td>
-        <td>{{ row.status }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="6">No student performance data available.</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<hr>
-
-<h2>Analytics</h2>
-
-<h3>Performance by Topic</h3>
-<ul>
-    {% for item in performance_by_topic %}
-        <li>{{ item.name }} → {{ item.average }}%</li>
-    {% empty %}
-        <li>No topic analytics yet.</li>
-    {% endfor %}
-</ul>
-
-<h3>Performance by Lesson</h3>
-<ul>
-    {% for item in performance_by_lesson %}
-        <li>{{ item.name }} → {{ item.average }}%</li>
-    {% empty %}
-        <li>No lesson analytics yet.</li>
-    {% endfor %}
-</ul>
-
-<h3>Common Weak Area</h3>
-<p>
-    {% if weakest_topic %}
-        Most students struggle with <strong>{{ weakest_topic.name }}</strong>.
-    {% else %}
-        No weak area identified yet.
-    {% endif %}
-</p>
-
-<h3>Most Failed Quiz</h3>
-<p>
-    {% if most_failed_quiz %}
-        {{ most_failed_quiz.0 }} (Average: {{ most_failed_quiz.1 }}%)
-    {% else %}
-        No quiz failure data yet.
-    {% endif %}
-</p>
-
-<hr>
-
-<h2>Reports</h2>
-{% for report in report_cards %}
-    <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-        <h3>{{ report.title }}</h3>
-        <p>{{ report.description }}</p>
-
-        {% if report.title == "Student Report" %}
-            <a href="{% url 'teacher_student_reports' %}">
-                <button type="button">View</button>
-            </a>
-        {% elif report.title == "Class Report" %}
-            <a href="{% url 'teacher_class_report' %}">
-                <button type="button">View</button>
-            </a>
-        {% elif report.title == "Topic Report" %}
-            <a href="{% url 'teacher_topic_report' %}">
-                <button type="button">View</button>
-            </a>
-        {% elif report.title == "Lesson Report" %}
-            <a href="{% url 'teacher_lesson_report' %}">
-                <button type="button">View</button>
-            </a>
-
-        {% elif report.title == "Quiz Report" %}
-            <a href="{% url 'teacher_quiz_report' %}">
-                <button type="button">View</button>
-            </a>
-
-        {% elif report.title == "Overall Progress Report" %}
-            <a href="{% url 'teacher_overall_progress_report' %}">
-                <button type="button">View</button>
-            </a>
-            
-        {% else %}
-            <button type="button" disabled>Coming Soon</button>
-        {% endif %}
+        <a href="{% url 'teacher_dashboard' %}"
+           class="inline-block px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-lg shadow hover:bg-blue-50 transition">
+            ← Back to Teacher Dashboard
+        </a>
     </div>
-{% endfor %}
+
+    <!-- Overview -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-blue-700 mb-4">Overview</h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-5">
+            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-600">
+                <p class="text-sm text-gray-600">Average Class Score</p>
+                <p class="text-2xl font-bold text-blue-700">{{ average_class_score }}%</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-red-500">
+                <p class="text-sm text-gray-600">Students At Risk</p>
+                <p class="text-2xl font-bold text-red-600">{{ students_at_risk }}</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-green-600">
+                <p class="text-sm text-gray-600">Top Performer</p>
+                <p class="text-lg font-semibold text-green-700">{{ top_performer }}</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-yellow-500">
+                <p class="text-sm text-gray-600">Total Quizzes Taken</p>
+                <p class="text-2xl font-bold text-yellow-600">{{ total_quizzes_taken }}</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-indigo-500">
+                <p class="text-sm text-gray-600">Best Performing Topic</p>
+                {% if best_topic %}
+                    <p class="text-lg font-semibold text-indigo-700">{{ best_topic.name }}</p>
+                    <p class="text-sm text-gray-600 mt-1">{{ best_topic.average }}%</p>
+                {% else %}
+                    <p class="text-lg font-semibold text-gray-500">No data</p>
+                {% endif %}
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-orange-500">
+                <p class="text-sm text-gray-600">Weakest Topic</p>
+                {% if weakest_topic %}
+                    <p class="text-lg font-semibold text-orange-700">{{ weakest_topic.name }}</p>
+                    <p class="text-sm text-gray-600 mt-1">{{ weakest_topic.average }}%</p>
+                {% else %}
+                    <p class="text-lg font-semibold text-gray-500">No data</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Performance -->
+    <div class="bg-white p-6 rounded-xl shadow-md border mb-8">
+        <h2 class="text-xl font-semibold text-blue-700 mb-4">Student Performance</h2>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+                <thead class="bg-blue-700 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Student</th>
+                        <th class="px-4 py-3 text-left">Avg Score</th>
+                        <th class="px-4 py-3 text-left">Quizzes Taken</th>
+                        <th class="px-4 py-3 text-left">Completed Lessons</th>
+                        <th class="px-4 py-3 text-left">Weak Topic</th>
+                        <th class="px-4 py-3 text-left">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    {% for row in student_rows %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 font-medium">{{ row.student.first_name }} {{ row.student.last_name }}</td>
+                        <td class="px-4 py-3 text-blue-700 font-semibold">{{ row.avg_score }}%</td>
+                        <td class="px-4 py-3">{{ row.quizzes_taken }}</td>
+                        <td class="px-4 py-3">{{ row.completed_lessons }}</td>
+                        <td class="px-4 py-3">{{ row.weak_topic }}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-3 py-1 rounded-full text-sm
+                                {% if row.status == 'Excellent' %}
+                                    bg-green-100 text-green-700
+                                {% elif row.status == 'Average' %}
+                                    bg-yellow-100 text-yellow-700
+                                {% elif row.status == 'At Risk' %}
+                                    bg-red-100 text-red-700
+                                {% else %}
+                                    bg-gray-100 text-gray-700
+                                {% endif %}
+                            ">
+                                {{ row.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-6 text-gray-500">
+                            No student performance data available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="grid lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-md border">
+            <h2 class="text-lg font-semibold text-blue-700 mb-4">Performance by Topic</h2>
+            <div class="space-y-3">
+                {% for item in performance_by_topic %}
+                    <div class="flex justify-between items-center bg-gray-50 rounded-lg px-4 py-3">
+                        <span class="font-medium text-gray-700">{{ item.name }}</span>
+                        <span class="text-blue-700 font-semibold">{{ item.average }}%</span>
+                    </div>
+                {% empty %}
+                    <p class="text-gray-500">No topic analytics yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-md border">
+            <h2 class="text-lg font-semibold text-blue-700 mb-4">Performance by Lesson</h2>
+            <div class="space-y-3">
+                {% for item in performance_by_lesson %}
+                    <div class="flex justify-between items-center bg-gray-50 rounded-lg px-4 py-3">
+                        <span class="font-medium text-gray-700">{{ item.name }}</span>
+                        <span class="text-blue-700 font-semibold">{{ item.average }}%</span>
+                    </div>
+                {% empty %}
+                    <p class="text-gray-500">No lesson analytics yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Insight Cards -->
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500">
+            <h3 class="text-lg font-semibold text-blue-700 mb-2">Common Weak Area</h3>
+            <p class="text-gray-700">
+                {% if weakest_topic %}
+                    Most students struggle with <strong>{{ weakest_topic.name }}</strong>.
+                {% else %}
+                    No weak area identified yet.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-yellow-500">
+            <h3 class="text-lg font-semibold text-blue-700 mb-2">Most Failed Quiz</h3>
+            <p class="text-gray-700">
+                {% if most_failed_quiz %}
+                    <strong>{{ most_failed_quiz.0 }}</strong> (Average: {{ most_failed_quiz.1 }}%)
+                {% else %}
+                    No quiz failure data yet.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Reports -->
+    <div class="bg-white p-6 rounded-xl shadow-md border">
+        <h2 class="text-xl font-semibold text-blue-700 mb-5">Reports</h2>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for report in report_cards %}
+                <div class="bg-gray-50 border rounded-xl p-5 hover:shadow-lg hover:-translate-y-1 transition transform">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-2">{{ report.title }}</h3>
+                    <p class="text-sm text-gray-600 mb-4">{{ report.description }}</p>
+
+                    {% if report.title == "Student Report" %}
+                        <a href="{% url 'teacher_student_reports' %}"
+                           class="inline-block px-4 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
+                            View
+                        </a>
+                    {% elif report.title == "Class Report" %}
+                        <a href="{% url 'teacher_class_report' %}"
+                           class="inline-block px-4 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
+                            View
+                        </a>
+                    {% elif report.title == "Topic Report" %}
+                        <a href="{% url 'teacher_topic_report' %}"
+                           class="inline-block px-4 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
+                            View
+                        </a>
+                    {% elif report.title == "Lesson Report" %}
+                        <a href="{% url 'teacher_lesson_report' %}"
+                           class="inline-block px-4 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
+                            View
+                        </a>
+                    {% elif report.title == "Quiz Report" %}
+                        <a href="{% url 'teacher_quiz_report' %}"
+                           class="inline-block px-4 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
+                            View
+                        </a>
+                    {% elif report.title == "Overall Progress Report" %}
+                        <a href="{% url 'teacher_overall_progress_report' %}"
+                           class="inline-block px-4 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
+                            View
+                        </a>
+                    {% else %}
+                        <button type="button" disabled
+                                class="px-4 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
+                            Coming Soon
+                        </button>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

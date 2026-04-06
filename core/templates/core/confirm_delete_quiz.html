@@ -1,13 +1,53 @@
-<h1>Confirm Delete Quiz</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Quiz | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-<p>
-    Are you sure you want to delete the quiz
-    <strong>{{ quiz.title }}</strong>?
-</p>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
 
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">Yes, Delete Quiz</button>
-</form>
+<div class="max-w-md w-full p-6">
 
-<p><a href="{% url 'manage_quizzes' %}">Cancel</a></p>
+    <!-- Card -->
+    <div class="bg-white p-6 rounded-xl shadow-md border text-center">
+
+        <!-- Title -->
+        <h1 class="text-xl font-bold text-red-600 mb-4">
+            Confirm Delete Quiz
+        </h1>
+
+        <!-- Message -->
+        <p class="text-gray-700 mb-6">
+            Are you sure you want to delete the quiz 
+            <strong class="text-gray-900">{{ quiz.title }}</strong>?
+        </p>
+
+        <!-- Warning -->
+        <p class="text-sm text-red-500 mb-6">
+            This action cannot be undone.
+        </p>
+
+        <!-- Actions -->
+        <form method="post" class="flex justify-center gap-4">
+            {% csrf_token %}
+
+            <a href="{% url 'manage_quizzes' %}"
+               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                Cancel
+            </a>
+
+            <button type="submit"
+                    class="px-5 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition">
+                Yes, Delete
+            </button>
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

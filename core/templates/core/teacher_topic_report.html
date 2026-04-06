@@ -1,45 +1,99 @@
-<h1>Topic Report</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic Report | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-<p><a href="{% url 'teacher_performance_reports' %}">← Back to Performance & Reports</a></p>
+<body class="bg-gray-100 text-gray-800">
 
-<hr>
+<div class="max-w-6xl mx-auto p-6">
 
-<p><strong>Best Performing Topic:</strong>
-    {% if best_topic %}
-        {{ best_topic.topic.name }} ({{ best_topic.average }}%)
-    {% else %}
-        No data
-    {% endif %}
-</p>
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-700">Topic Report</h1>
+            <p class="text-sm text-gray-600">Analyze performance across different topics</p>
+        </div>
 
-<p><strong>Weakest Topic:</strong>
-    {% if weakest_topic %}
-        {{ weakest_topic.topic.name }} ({{ weakest_topic.average }}%)
-    {% else %}
-        No data
-    {% endif %}
-</p>
+        <a href="{% url 'teacher_performance_reports' %}"
+           class="inline-block px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-lg shadow hover:bg-blue-50 transition">
+            ← Back to Performance & Reports
+        </a>
+    </div>
 
-<hr>
+    <!-- Summary Cards -->
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-600">
+            <p class="text-sm text-gray-600 mb-2">Best Performing Topic</p>
+            {% if best_topic %}
+                <p class="text-xl font-bold text-green-700">{{ best_topic.topic.name }}</p>
+                <p class="text-sm text-gray-600 mt-1">Average Score: {{ best_topic.average }}%</p>
+            {% else %}
+                <p class="text-lg font-semibold text-gray-500">No data</p>
+            {% endif %}
+        </div>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Topic</th>
-        <th>Average Score</th>
-        <th>Quizzes Taken</th>
-        <th>Students Attempted</th>
-    </tr>
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-600">
+            <p class="text-sm text-gray-600 mb-2">Weakest Topic</p>
+            {% if weakest_topic %}
+                <p class="text-xl font-bold text-red-600">{{ weakest_topic.topic.name }}</p>
+                <p class="text-sm text-gray-600 mt-1">Average Score: {{ weakest_topic.average }}%</p>
+            {% else %}
+                <p class="text-lg font-semibold text-gray-500">No data</p>
+            {% endif %}
+        </div>
+    </div>
 
-    {% for item in performance_by_topic %}
-    <tr>
-        <td>{{ item.topic.name }}</td>
-        <td>{{ item.average }}%</td>
-        <td>{{ item.quizzes_taken }}</td>
-        <td>{{ item.student_count }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="4">No topic data available.</td>
-    </tr>
-    {% endfor %}
-</table>
+    <!-- Table -->
+    <div class="bg-white p-6 rounded-xl shadow-md border">
+        <h2 class="text-lg font-semibold mb-4 text-blue-700">Topic Performance Breakdown</h2>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+                <thead class="bg-blue-700 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Topic</th>
+                        <th class="px-4 py-3 text-left">Average Score</th>
+                        <th class="px-4 py-3 text-left">Quizzes Taken</th>
+                        <th class="px-4 py-3 text-left">Students Attempted</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    {% for item in performance_by_topic %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 font-medium text-gray-800">
+                            {{ item.topic.name }}
+                        </td>
+
+                        <td class="px-4 py-3 text-blue-700 font-semibold">
+                            {{ item.average }}%
+                        </td>
+
+                        <td class="px-4 py-3">
+                            {{ item.quizzes_taken }}
+                        </td>
+
+                        <td class="px-4 py-3">
+                            {{ item.student_count }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-6 text-gray-500">
+                            No topic data available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

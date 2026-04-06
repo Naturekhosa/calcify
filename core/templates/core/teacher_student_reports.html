@@ -1,33 +1,98 @@
-<h1>Student Reports</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Reports | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-<table border="1" cellpadding="10" cellspacing="0">
-    <thead>
-        <tr>
-            <th>Student</th>
-            <th>Average Score</th>
-            <th>Quizzes Taken</th>
-            <th>Lessons Completed</th>
-            <th>Weak Topic</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in student_rows %}
-        <tr>
-            <td>{{ row.student.first_name }} {{ row.student.last_name }}</td>
-            <td>{{ row.avg_score }}%</td>
-            <td>{{ row.quizzes_taken }}</td>
-            <td>{{ row.completed_lessons }}</td>
-            <td>{{ row.weak_topic }}</td>
-            <td>{{ row.status }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="6">No student data available yet.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<body class="bg-gray-100 text-gray-800">
 
-<br>
-<a href="{% url 'teacher_performance_reports' %}">Back to Performance Reports</a>
+<div class="max-w-7xl mx-auto p-6">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-700">Student Reports</h1>
+            <p class="text-sm text-gray-600">Detailed overview of student performance and progress</p>
+        </div>
+
+        <a href="{% url 'teacher_performance_reports' %}"
+           class="inline-block px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-lg shadow hover:bg-blue-50 transition">
+            ← Back to Performance Reports
+        </a>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white p-6 rounded-xl shadow-md border">
+        <h2 class="text-lg font-semibold mb-4 text-blue-700">Student Performance Breakdown</h2>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+                <thead class="bg-blue-700 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Student</th>
+                        <th class="px-4 py-3 text-left">Average Score</th>
+                        <th class="px-4 py-3 text-left">Quizzes Taken</th>
+                        <th class="px-4 py-3 text-left">Lessons Completed</th>
+                        <th class="px-4 py-3 text-left">Weak Topic</th>
+                        <th class="px-4 py-3 text-left">Status</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    {% for row in student_rows %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 font-medium">
+                            {{ row.student.first_name }} {{ row.student.last_name }}
+                        </td>
+
+                        <td class="px-4 py-3 text-blue-700 font-semibold">
+                            {{ row.avg_score }}%
+                        </td>
+
+                        <td class="px-4 py-3">
+                            {{ row.quizzes_taken }}
+                        </td>
+
+                        <td class="px-4 py-3">
+                            {{ row.completed_lessons }}
+                        </td>
+
+                        <td class="px-4 py-3 text-gray-600">
+                            {{ row.weak_topic }}
+                        </td>
+
+                        <td class="px-4 py-3">
+                            <span class="px-3 py-1 rounded-full text-sm
+                                {% if row.status == 'Excellent' %}
+                                    bg-green-100 text-green-700
+                                {% elif row.status == 'Average' %}
+                                    bg-yellow-100 text-yellow-700
+                                {% elif row.status == 'At Risk' %}
+                                    bg-red-100 text-red-700
+                                {% else %}
+                                    bg-gray-100 text-gray-700
+                                {% endif %}
+                            ">
+                                {{ row.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-6 text-gray-500">
+                            No student data available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,66 +1,156 @@
-<h1>Manage Lessons</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Lessons | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
+<body class="bg-gray-100 text-gray-800">
 
+<div class="max-w-7xl mx-auto p-6">
 
-<p>
-    <a href="{% url 'create_topic' %}">Create Topic</a> |
-    <a href="{% url 'create_lesson' %}">Create Lesson</a>
-</p>
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-700">Manage Lessons</h1>
+            <p class="text-sm text-gray-600">Create and manage topics and lesson content</p>
+        </div>
 
-<form method="get">
-    <input
-        type="text"
-        name="q"
-        placeholder="Search by lesson title, topic, or keyword"
-        value="{{ search_query }}"
-    >
-    <button type="submit">Search</button>
+        <a href="{% url 'teacher_dashboard' %}"
+           class="inline-block px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-lg shadow hover:bg-blue-50 transition">
+            ← Back to Teacher Dashboard
+        </a>
+    </div>
 
-    <select name="topic">
-        <option value="">All Topics</option>
-        {% for topic in all_topics %}
-            <option value="{{ topic.id }}" {% if topic_filter == topic.id|stringformat:"s" %}selected{% endif %}>
-                {{ topic.name }}
-            </option>
+    <!-- Actions -->
+    <div class="flex flex-wrap gap-3 mb-6">
+        <a href="{% url 'create_topic' %}"
+           class="px-4 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
+            + Create Topic
+        </a>
+
+        <a href="{% url 'create_lesson' %}"
+           class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition">
+            + Create Lesson
+        </a>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white p-5 rounded-xl shadow-md border mb-8">
+        <form method="get" class="grid md:grid-cols-4 gap-4 items-end">
+
+            <!-- Search -->
+            <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">Search</label>
+                <input type="text"
+                       name="q"
+                       placeholder="Lesson, topic, keyword..."
+                       value="{{ search_query }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Topic Filter -->
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Filter by Topic</label>
+                <select name="topic"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Topics</option>
+                    {% for topic in all_topics %}
+                        <option value="{{ topic.id }}"
+                            {% if topic_filter == topic.id|stringformat:"s" %}selected{% endif %}>
+                            {{ topic.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition">
+                    Apply
+                </button>
+
+                <a href="{% url 'manage_lessons' %}"
+                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    Reset
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Topics & Lessons -->
+    <div class="space-y-6">
+
+        {% for topic in topics %}
+        <div class="bg-white p-6 rounded-xl shadow-md border">
+
+            <!-- Topic Header -->
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-3">
+                <div>
+                    <h2 class="text-xl font-semibold text-blue-700">{{ topic.name }}</h2>
+                    <p class="text-sm text-gray-600">{{ topic.description }}</p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'create_lesson' %}?topic={{ topic.id }}"
+                       class="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
+                        + Add Lesson
+                    </a>
+
+                    <a href="{% url 'edit_topic' topic.id %}"
+                       class="px-3 py-1 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 transition">
+                        Edit
+                    </a>
+
+                    <a href="{% url 'delete_topic' topic.id %}"
+                       class="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition">
+                        Delete
+                    </a>
+                </div>
+            </div>
+
+            <!-- Lessons -->
+            {% if topic.lessons.all %}
+                <div class="space-y-4">
+                    {% for lesson in topic.lessons.all %}
+                    <div class="bg-gray-50 p-4 rounded-lg border hover:shadow-sm transition">
+
+                        <h3 class="font-semibold text-gray-800">{{ lesson.title }}</h3>
+                        <p class="text-sm text-gray-600 mb-2">{{ lesson.description }}</p>
+
+                        <div class="flex gap-3 text-sm">
+                            <a href="{% url 'edit_lesson' lesson.id %}"
+                               class="text-blue-600 hover:underline">
+                                Edit
+                            </a>
+
+                            <a href="{% url 'delete_lesson' lesson.id %}"
+                               class="text-red-600 hover:underline">
+                                Delete
+                            </a>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500">No lessons under this topic yet.</p>
+            {% endif %}
+
+        </div>
+        {% empty %}
+            <div class="bg-white p-6 rounded-xl shadow-md border text-center text-gray-500">
+                No topics or lessons found.
+            </div>
         {% endfor %}
-    </select>
-    <button type="submit">Filter</button>
 
-    <a href="{% url 'manage_lessons' %}">Reset</a>
-</form>
+    </div>
 
-<hr>
+</div>
 
-{% for topic in topics %}
-    <h2>{{ topic.name }}</h2>
-    <p>{{ topic.description }}</p>
-
-    <p>
-        <a href="{% url 'create_lesson' %}?topic={{ topic.id }}">Add Lesson</a> |
-        <a href="{% url 'edit_topic' topic.id %}">Edit Topic</a> |
-        <a href="{% url 'delete_topic' topic.id %}">Delete Topic</a>
-    </p>
-
-    {% if topic.lessons.all %}
-        <ul>
-            {% for lesson in topic.lessons.all %}
-                <li>
-                    <strong>{{ lesson.title }}</strong><br>
-                    {{ lesson.description }}<br>
-
-                    <a href="{% url 'edit_lesson' lesson.id %}">Edit Lesson</a> |
-                    <a href="{% url 'delete_lesson' lesson.id %}">Delete Lesson</a>
-                </li>
-                <br>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No lessons under this topic yet.</p>
-    {% endif %}
-
-    <hr>
-{% empty %}
-    <p>No topics or lessons found.</p>
-{% endfor %}
-
-<p><a href="{% url 'teacher_dashboard' %}">← Back to Teacher Dashboard</a></p>
+</body>
+</html>

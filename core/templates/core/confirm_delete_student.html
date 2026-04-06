@@ -1,16 +1,60 @@
-<h1>Confirm Delete</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Student | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-<p>
-    Are you sure you want to permanently delete
-    <strong>{{ student.first_name }} {{ student.last_name }}</strong>
-    ({{ student.username }})?
-</p>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
 
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">Yes, Delete</button>
-</form>
+<div class="max-w-md w-full p-6">
 
-<p>
-    <a href="{% url 'manage_students' %}">Cancel</a>
-</p>
+    <!-- Card -->
+    <div class="bg-white p-6 rounded-xl shadow-md border text-center">
+
+        <!-- Title -->
+        <h1 class="text-xl font-bold text-red-600 mb-4">
+            Confirm Delete Student
+        </h1>
+
+        <!-- Message -->
+        <p class="text-gray-700 mb-4">
+            Are you sure you want to permanently delete
+        </p>
+
+        <p class="text-lg font-semibold text-gray-900 mb-2">
+            {{ student.first_name }} {{ student.last_name }}
+        </p>
+
+        <p class="text-sm text-gray-500 mb-6">
+            ({{ student.username }})
+        </p>
+
+        <!-- Warning -->
+        <p class="text-sm text-red-500 mb-6">
+            This action cannot be undone.
+        </p>
+
+        <!-- Actions -->
+        <form method="post" class="flex justify-center gap-4">
+            {% csrf_token %}
+
+            <a href="{% url 'manage_students' %}"
+               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                Cancel
+            </a>
+
+            <button type="submit"
+                    class="px-5 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition">
+                Yes, Delete
+            </button>
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

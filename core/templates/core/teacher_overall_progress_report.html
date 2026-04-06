@@ -1,58 +1,151 @@
-<h1>Overall Progress Report</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overall Progress Report | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-<p><a href="{% url 'teacher_performance_reports' %}">← Back to Performance & Reports</a></p>
+<body class="bg-gray-100 text-gray-800">
 
-<hr>
+<div class="max-w-6xl mx-auto p-6">
 
-<p><strong>Total Students:</strong> {{ total_students }}</p>
-<p><strong>Total Lessons:</strong> {{ total_lessons }}</p>
-<p><strong>Total Published Quizzes:</strong> {{ total_quizzes }}</p>
-<p><strong>Total Completed Lessons:</strong> {{ total_completed_lessons }}</p>
-<p><strong>Total Quiz Attempts:</strong> {{ total_quiz_attempts }}</p>
-<p><strong>Overall Average Score:</strong> {{ overall_average_score }}%</p>
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-700">Overall Progress Report</h1>
+            <p class="text-sm text-gray-600">Track overall student engagement and performance</p>
+        </div>
 
-<p><strong>Most Active Student:</strong>
-    {% if most_active_student %}
-        {{ most_active_student.student.first_name }} {{ most_active_student.student.last_name }}
-        ({{ most_active_student.completed_lessons }} lessons completed)
-    {% else %}
-        No data
-    {% endif %}
-</p>
+        <a href="{% url 'teacher_performance_reports' %}"
+           class="inline-block px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-lg shadow hover:bg-blue-50 transition">
+            ← Back to Performance & Reports
+        </a>
+    </div>
 
-<p><strong>Best Overall Progress:</strong>
-    {% if best_progress_student %}
-        {{ best_progress_student.student.first_name }} {{ best_progress_student.student.last_name }}
-        ({{ best_progress_student.average_score }}%)
-    {% else %}
-        No data
-    {% endif %}
-</p>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-5 mb-8">
+        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-600">
+            <p class="text-sm text-gray-600">Total Students</p>
+            <p class="text-2xl font-bold">{{ total_students }}</p>
+        </div>
 
-<hr>
+        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-indigo-500">
+            <p class="text-sm text-gray-600">Total Lessons</p>
+            <p class="text-2xl font-bold">{{ total_lessons }}</p>
+        </div>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Student</th>
-        <th>Completed Lessons</th>
-        <th>Lesson Completion Rate</th>
-        <th>Quizzes Taken</th>
-        <th>Average Score</th>
-        <th>Status</th>
-    </tr>
+        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-purple-500">
+            <p class="text-sm text-gray-600">Published Quizzes</p>
+            <p class="text-2xl font-bold">{{ total_quizzes }}</p>
+        </div>
 
-    {% for item in student_progress_rows %}
-    <tr>
-        <td>{{ item.student.first_name }} {{ item.student.last_name }}</td>
-        <td>{{ item.completed_lessons }}</td>
-        <td>{{ item.lesson_completion_rate }}%</td>
-        <td>{{ item.quizzes_taken }}</td>
-        <td>{{ item.average_score }}%</td>
-        <td>{{ item.progress_status }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="6">No progress data available.</td>
-    </tr>
-    {% endfor %}
-</table>
+        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-green-600">
+            <p class="text-sm text-gray-600">Completed Lessons</p>
+            <p class="text-2xl font-bold text-green-700">{{ total_completed_lessons }}</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-yellow-500">
+            <p class="text-sm text-gray-600">Quiz Attempts</p>
+            <p class="text-2xl font-bold text-yellow-600">{{ total_quiz_attempts }}</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-700">
+            <p class="text-sm text-gray-600">Average Score</p>
+            <p class="text-2xl font-bold text-blue-700">{{ overall_average_score }}%</p>
+        </div>
+    </div>
+
+    <!-- Highlight Cards -->
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-600">
+            <p class="text-sm text-gray-600 mb-2">Most Active Student</p>
+            {% if most_active_student %}
+                <p class="text-xl font-bold text-green-700">
+                    {{ most_active_student.student.first_name }} {{ most_active_student.student.last_name }}
+                </p>
+                <p class="text-sm text-gray-600 mt-1">
+                    {{ most_active_student.completed_lessons }} lessons completed
+                </p>
+            {% else %}
+                <p class="text-lg font-semibold text-gray-500">No data</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-600">
+            <p class="text-sm text-gray-600 mb-2">Best Overall Progress</p>
+            {% if best_progress_student %}
+                <p class="text-xl font-bold text-blue-700">
+                    {{ best_progress_student.student.first_name }} {{ best_progress_student.student.last_name }}
+                </p>
+                <p class="text-sm text-gray-600 mt-1">
+                    {{ best_progress_student.average_score }}% average score
+                </p>
+            {% else %}
+                <p class="text-lg font-semibold text-gray-500">No data</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white p-6 rounded-xl shadow-md border">
+        <h2 class="text-lg font-semibold mb-4 text-blue-700">Student Progress Breakdown</h2>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+                <thead class="bg-blue-700 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Student</th>
+                        <th class="px-4 py-3 text-left">Completed Lessons</th>
+                        <th class="px-4 py-3 text-left">Completion Rate</th>
+                        <th class="px-4 py-3 text-left">Quizzes Taken</th>
+                        <th class="px-4 py-3 text-left">Average Score</th>
+                        <th class="px-4 py-3 text-left">Status</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    {% for item in student_progress_rows %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 font-medium">
+                            {{ item.student.first_name }} {{ item.student.last_name }}
+                        </td>
+                        <td class="px-4 py-3">{{ item.completed_lessons }}</td>
+                        <td class="px-4 py-3 text-blue-700 font-semibold">
+                            {{ item.lesson_completion_rate }}%
+                        </td>
+                        <td class="px-4 py-3">{{ item.quizzes_taken }}</td>
+                        <td class="px-4 py-3 text-green-700 font-semibold">
+                            {{ item.average_score }}%
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-3 py-1 rounded-full text-sm 
+                                {% if item.progress_status == 'Excellent' %}
+                                    bg-green-100 text-green-700
+                                {% elif item.progress_status == 'Average' %}
+                                    bg-yellow-100 text-yellow-700
+                                {% else %}
+                                    bg-red-100 text-red-700
+                                {% endif %}
+                            ">
+                                {{ item.progress_status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-6 text-gray-500">
+                            No progress data available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
