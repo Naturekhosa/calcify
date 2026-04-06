@@ -1,31 +1,84 @@
-<h1>Welcome, {{ request.user.first_name }}</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-<p><form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit">Logout</button>
-</form></p>
+<body class="bg-gradient-to-b from-blue-50 via-slate-50 to-white text-gray-800 min-h-screen">
 
-<hr>
+<div class="max-w-5xl mx-auto px-6 py-8">
 
-<h2>Dashboard</h2>
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">
+                Welcome, {{ request.user.first_name }}
+            </h1>
+            <p class="text-sm text-slate-600">
+                Continue your learning journey
+            </p>
+        </div>
 
-<ul>
-    <li><strong>Total Lessons:</strong> {{ total_lessons }}</li>
-    <li><strong>Quizzes Available:</strong> {{ total_quizzes }}</li>
-</ul>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm hover:bg-slate-100 transition">
+                Logout
+            </button>
+        </form>
+    </div>
 
-<hr>
+    <!-- Stats -->
+    <div class="grid grid-cols-2 gap-5 mb-8">
 
-<h2>Actions</h2>
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-600">
+            <p class="text-sm text-gray-500">Total Lessons</p>
+            <p class="text-3xl font-bold text-blue-700 mt-1">
+                {{ total_lessons }}
+            </p>
+        </div>
 
-<p>
-    <a href="{% url 'student_lessons' %}">My Lessons</a>
-</p>
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500">
+            <p class="text-sm text-gray-500">Quizzes Available</p>
+            <p class="text-3xl font-bold text-green-600 mt-1">
+                {{ total_quizzes }}
+            </p>
+        </div>
 
-<p>
-    <a href="{% url 'student_quizzes' %}">My Quizzes</a>
-</p>
+    </div>
 
-<p>
-     <a href="{% url 'student_progress' %}">My Progress</a>
-</p>
+    <!-- Actions -->
+    <div class="grid md:grid-cols-3 gap-6">
+
+        <a href="{% url 'student_lessons' %}"
+           class="block bg-gradient-to-br from-blue-600 to-blue-700 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
+            <h2 class="font-semibold text-lg mb-2">My Lessons</h2>
+            <p class="text-sm text-blue-100">
+                View and continue your lessons
+            </p>
+        </a>
+
+        <a href="{% url 'student_quizzes' %}"
+           class="block bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
+            <h2 class="font-semibold text-lg mb-2">My Quizzes</h2>
+            <p class="text-sm text-green-100">
+                Attempt quizzes and test your understanding
+            </p>
+        </a>
+
+        <a href="{% url 'student_progress' %}"
+           class="block bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
+            <h2 class="font-semibold text-lg mb-2">My Progress</h2>
+            <p class="text-sm text-purple-100">
+                Track your performance and improvement
+            </p>
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

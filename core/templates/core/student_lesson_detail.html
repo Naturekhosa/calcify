@@ -1,67 +1,123 @@
-<h1>{{ lesson.title }}</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ lesson.title }} | Calcify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-<p><a href="{% url 'student_lessons' %}">← Back to Lessons</a></p>
+<body class="bg-slate-50 text-gray-800 min-h-screen">
 
-<hr>
+<div class="max-w-4xl mx-auto px-6 py-8">
 
-<!-- VIDEO -->
-{% if lesson.video_link %}
-    <h3>Watch Lesson</h3>
-
-    <iframe width="560" height="315"
-        src="https://www.youtube.com/embed/{{ lesson.video_link|cut:'https://www.youtube.com/watch?v=' }}"
-        frameborder="0"
-        allowfullscreen>
-    </iframe>
-
-    <p>
-        If video doesn't load:
-        <a href="{{ lesson.video_link }}" target="_blank">
-            Watch on YouTube
+    <!-- Header -->
+    <div class="mb-6">
+        <a href="{% url 'student_lessons' %}" 
+           class="text-sm text-blue-600 hover:underline">
+            ← Back to Lessons
         </a>
-    </p>
-{% endif %}
 
-<hr>
+        <h1 class="text-3xl font-bold text-slate-900 mt-3">
+            {{ lesson.title }}
+        </h1>
+    </div>
 
-<!-- NOTES -->
-<h3>Lesson Notes</h3>
-<p>{{ lesson.content }}</p>
+    <!-- Video Section -->
+    {% if lesson.video_link %}
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-blue-700 mb-4">
+            Watch Lesson
+        </h2>
 
-<hr>
+        <div class="aspect-video w-full rounded-xl overflow-hidden">
+            <iframe
+                class="w-full h-full"
+                src="https://www.youtube.com/embed/{{ lesson.video_link|cut:'https://www.youtube.com/watch?v=' }}"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+        </div>
 
-<!-- LESSON COMPLETION -->
-<h3>Progress</h3>
+        <p class="text-sm text-slate-500 mt-3">
+            If the video doesn't load,
+            <a href="{{ lesson.video_link }}" target="_blank" class="text-blue-600 underline">
+                watch on YouTube
+            </a>
+        </p>
+    </div>
+    {% endif %}
 
-{% if progress.completed %}
-    <p style="color: green;"><strong>✅ Lesson completed</strong></p>
-{% else %}
-    <p>
-        <a href="{% url 'mark_lesson_complete' lesson.id %}">
-            Mark Lesson as Complete
-        </a>
-    </p>
-{% endif %}
+    <!-- Notes Section -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-blue-700 mb-4">
+            Lesson Notes
+        </h2>
 
-<hr>
+        <div class="text-slate-700 leading-relaxed space-y-3">
+            {{ lesson.content }}
+        </div>
+    </div>
 
-<!-- QUIZZES -->
-<h3>Related Quizzes</h3>
+    <!-- Progress Section -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-blue-700 mb-3">
+            Progress
+        </h2>
 
-{% if quizzes %}
-    <ul>
-        {% for quiz in quizzes %}
-            <li>
-                <strong>{{ quiz.title }}</strong>
+        {% if progress.completed %}
+            <p class="text-green-600 font-medium">
+                ✅ Lesson completed
+            </p>
+        {% else %}
+            <a href="{% url 'mark_lesson_complete' lesson.id %}"
+               class="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                Mark as Complete
+            </a>
+        {% endif %}
+    </div>
 
-                {% if quiz.status == 'published' %}
-                    - <a href="{% url 'take_quiz' quiz.id %}">Start Quiz</a>
-                {% else %}
-                    - (Draft - not available)
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No quizzes available for this lesson yet.</p>
-{% endif %}
+    <!-- Quiz Section -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-blue-700 mb-4">
+            Related Quizzes
+        </h2>
+
+        {% if quizzes %}
+            <div class="space-y-4">
+                {% for quiz in quizzes %}
+                    <div class="border border-slate-200 rounded-xl p-4 flex justify-between items-center">
+
+                        <div>
+                            <p class="font-semibold text-slate-900">
+                                {{ quiz.title }}
+                            </p>
+                        </div>
+
+                        <div>
+                            {% if quiz.status == 'published' %}
+                                <a href="{% url 'take_quiz' quiz.id %}"
+                                   class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                    Start Quiz
+                                </a>
+                            {% else %}
+                                <span class="text-sm text-slate-400">
+                                    Draft
+                                </span>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-slate-500">
+                No quizzes available for this lesson yet.
+            </p>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>
