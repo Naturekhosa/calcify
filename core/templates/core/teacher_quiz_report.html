@@ -1,0 +1,55 @@
+<h1>Quiz Report</h1>
+
+<p><a href="{% url 'teacher_performance_reports' %}">← Back to Performance & Reports</a></p>
+
+<hr>
+
+<p><strong>Best Performing Quiz:</strong>
+    {% if best_quiz %}
+        {{ best_quiz.quiz.title }} ({{ best_quiz.average }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<p><strong>Most Failed Quiz:</strong>
+    {% if most_failed_quiz %}
+        {{ most_failed_quiz.quiz.title }} ({{ most_failed_quiz.average }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<hr>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Quiz</th>
+        <th>Lesson</th>
+        <th>Topic</th>
+        <th>Status</th>
+        <th>Average Score</th>
+        <th>Attempts</th>
+        <th>Students Attempted</th>
+        <th>Highest Score</th>
+        <th>Lowest Score</th>
+    </tr>
+
+    {% for item in performance_by_quiz %}
+    <tr>
+        <td>{{ item.quiz.title }}</td>
+        <td>{{ item.lesson.title }}</td>
+        <td>{{ item.topic.name }}</td>
+        <td>{{ item.status }}</td>
+        <td>{{ item.average }}%</td>
+        <td>{{ item.attempts_count }}</td>
+        <td>{{ item.student_count }}</td>
+        <td>{{ item.highest_score }}%</td>
+        <td>{{ item.lowest_score }}%</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="9">No quiz data available.</td>
+    </tr>
+    {% endfor %}
+</table>

@@ -1,0 +1,45 @@
+<h1>Topic Report</h1>
+
+<p><a href="{% url 'teacher_performance_reports' %}">← Back to Performance & Reports</a></p>
+
+<hr>
+
+<p><strong>Best Performing Topic:</strong>
+    {% if best_topic %}
+        {{ best_topic.topic.name }} ({{ best_topic.average }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<p><strong>Weakest Topic:</strong>
+    {% if weakest_topic %}
+        {{ weakest_topic.topic.name }} ({{ weakest_topic.average }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<hr>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Topic</th>
+        <th>Average Score</th>
+        <th>Quizzes Taken</th>
+        <th>Students Attempted</th>
+    </tr>
+
+    {% for item in performance_by_topic %}
+    <tr>
+        <td>{{ item.topic.name }}</td>
+        <td>{{ item.average }}%</td>
+        <td>{{ item.quizzes_taken }}</td>
+        <td>{{ item.student_count }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4">No topic data available.</td>
+    </tr>
+    {% endfor %}
+</table>

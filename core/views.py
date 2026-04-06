@@ -1020,3 +1020,357 @@ def teacher_performance_reports(request):
     }
 
     return render(request, 'core/teacher_performance_reports.html', context)
+
+
+
+@never_cache
+@login_required
+def teacher_student_reports(request):
+    if request.user.role != 'teacher':
+        return redirect('login')
+
+    students = CustomUser.objects.filter(role='student', is_active=True)
+    attempts = QuizAttempt.objects.select_related('student', 'quiz__lesson__topic').all()
+    topics = Topic.objects.all()
+
+    student_rows = []
+
+    for student in students:
+        student_attempts = attempts.filter(student=student)
+        completed_lessons = LessonProgress.objects.filter(student=student, completed=True).count()
+
+        if student_attempts.exists():
+            avg_score = round(
+                sum(a.percentage for a in student_attempts) / student_attempts.count(), 2
+            )
+        else:
+            avg_score = 0
+
+        weak_topic = "None"
+        topic_scores = []
+
+        for topic in topics:
+            topic_attempts = student_attempts.filter(quiz__lesson__topic=topic)
+            if topic_attempts.exists():
+                avg_topic = sum(a.percentage for a in topic_attempts) / topic_attempts.count()
+                topic_scores.append((topic.name, avg_topic))
+
+        if topic_scores:
+            weak_topic = min(topic_scores, key=lambda x: x[1])[0]
+
+        if avg_score < 50:
+            status = "At Risk"
+        elif avg_score < 75:
+            status = "Needs Improvement"
+        else:
+            status = "Doing Well"
+
+        student_rows.append({
+            'student': student,
+            'avg_score': avg_score,
+            'quizzes_taken': student_attempts.count(),
+            'completed_lessons': completed_lessons,
+            'weak_topic': weak_topic,
+            'status': status,
+        })
+
+    return render(request, 'core/teacher_student_reports.html', {
+        'student_rows': student_rows
+    })
+
+
+@never_cache
+@login_required
+def teacher_class_report(request):
+    if request.user.role != 'teacher':
+        return redirect('login')
+
+    students = CustomUser.objects.filter(role='student', is_active=True)
+    attempts = QuizAttempt.objects.select_related('student', 'quiz__lesson__topic').all()
+    topics = Topic.objects.all()
+
+    average_class_score = round(
+        sum(a.percentage for a in attempts) / attempts.count(), 2
+    ) if attempts.exists() else 0
+
+    total_quizzes_taken = attempts.count()
+
+    student_rows = []
+    for student in students:
+        student_attempts = attempts.filter(student=student)
+
+        if student_attempts.exists():
+            avg_score = round(
+                sum(a.percentage for a in student_attempts) / student_attempts.count(), 2
+            )
+        else:
+            avg_score = 0
+
+        if avg_score < 50:
+            status = "At Risk"
+        elif avg_score < 75:
+            status = "Needs Improvement"
+        else:
+            status = "Doing Well"
+
+        student_rows.append({
+            'student': student,
+            'avg_score': avg_score,
+            'status': status,
+        })
+
+    if student_rows:
+        top_performer_row = max(student_rows, key=lambda x: x['avg_score'])
+        top_performer = f"{top_performer_row['student'].first_name} {top_performer_row['student'].last_name} ({top_performer_row['avg_score']}%)"
+    else:
+        top_performer = "No data yet"
+
+    students_at_risk = len([row for row in student_rows if row['status'] == 'At Risk'])
+
+    performance_by_topic = []
+    for topic in topics:
+        topic_attempts = attempts.filter(quiz__lesson__topic=topic)
+        if topic_attempts.exists():
+            avg = round(
+                sum(a.percentage for a in topic_attempts) / topic_attempts.count(), 2
+            )
+        else:
+            avg = 0
+
+        performance_by_topic.append({
+            'name': topic.name,
+            'average': avg,
+        })
+
+    best_topic = max(performance_by_topic, key=lambda x: x['average']) if performance_by_topic else None
+    weakest_topic = min(performance_by_topic, key=lambda x: x['average']) if performance_by_topic else None
+
+    return render(request, 'core/teacher_class_report.html', {
+        'average_class_score': average_class_score,
+        'total_quizzes_taken': total_quizzes_taken,
+        'students_at_risk': students_at_risk,
+        'top_performer': top_performer,
+        'best_topic': best_topic,
+        'weakest_topic': weakest_topic,
+        'total_students': students.count(),
+    })
+
+
+@never_cache
+@login_required
+def teacher_topic_report(request):
+    if request.user.role != 'teacher':
+        return redirect('login')
+
+    topics = Topic.objects.all()
+    attempts = QuizAttempt.objects.select_related('quiz__lesson__topic', 'student').all()
+
+    performance_by_topic = []
+
+    for topic in topics:
+        topic_attempts = attempts.filter(quiz__lesson__topic=topic)
+
+        if topic_attempts.exists():
+            avg = round(
+                sum(a.percentage for a in topic_attempts) / topic_attempts.count(), 2
+            )
+            quizzes_taken = topic_attempts.count()
+            student_count = topic_attempts.values('student').distinct().count()
+        else:
+            avg = 0
+            quizzes_taken = 0
+            student_count = 0
+
+        performance_by_topic.append({
+            'topic': topic,
+            'average': avg,
+            'quizzes_taken': quizzes_taken,
+            'student_count': student_count,
+        })
+
+    best_topic = max(performance_by_topic, key=lambda x: x['average']) if performance_by_topic else None
+    weakest_topic = min(performance_by_topic, key=lambda x: x['average']) if performance_by_topic else None
+
+    return render(request, 'core/teacher_topic_report.html', {
+        'performance_by_topic': performance_by_topic,
+        'best_topic': best_topic,
+        'weakest_topic': weakest_topic,
+    })
+
+
+@never_cache
+@login_required
+def teacher_lesson_report(request):
+    if request.user.role != 'teacher':
+        return redirect('login')
+
+    lessons = Lesson.objects.select_related('topic').all()
+    attempts = QuizAttempt.objects.select_related('quiz__lesson__topic', 'student').all()
+
+    performance_by_lesson = []
+
+    for lesson in lessons:
+        lesson_attempts = attempts.filter(quiz__lesson=lesson)
+
+        if lesson_attempts.exists():
+            avg = round(
+                sum(a.percentage for a in lesson_attempts) / lesson_attempts.count(), 2
+            )
+            quizzes_taken = lesson_attempts.count()
+            student_count = lesson_attempts.values('student').distinct().count()
+        else:
+            avg = 0
+            quizzes_taken = 0
+            student_count = 0
+
+        performance_by_lesson.append({
+            'lesson': lesson,
+            'topic': lesson.topic,
+            'average': avg,
+            'quizzes_taken': quizzes_taken,
+            'student_count': student_count,
+        })
+
+    best_lesson = max(performance_by_lesson, key=lambda x: x['average']) if performance_by_lesson else None
+    weakest_lesson = min(performance_by_lesson, key=lambda x: x['average']) if performance_by_lesson else None
+
+    return render(request, 'core/teacher_lesson_report.html', {
+        'performance_by_lesson': performance_by_lesson,
+        'best_lesson': best_lesson,
+        'weakest_lesson': weakest_lesson,
+    })
+
+
+@never_cache
+@login_required
+def teacher_quiz_report(request):
+    if request.user.role != 'teacher':
+        return redirect('login')
+
+    quizzes = Quiz.objects.select_related('lesson__topic').all()
+    attempts = QuizAttempt.objects.select_related('quiz__lesson__topic', 'student').all()
+
+    performance_by_quiz = []
+
+    for quiz in quizzes:
+        quiz_attempts = attempts.filter(quiz=quiz)
+
+        if quiz_attempts.exists():
+            avg = round(
+                sum(a.percentage for a in quiz_attempts) / quiz_attempts.count(), 2
+            )
+            attempts_count = quiz_attempts.count()
+            student_count = quiz_attempts.values('student').distinct().count()
+            highest_score = max(a.percentage for a in quiz_attempts)
+            lowest_score = min(a.percentage for a in quiz_attempts)
+        else:
+            avg = 0
+            attempts_count = 0
+            student_count = 0
+            highest_score = 0
+            lowest_score = 0
+
+        performance_by_quiz.append({
+            'quiz': quiz,
+            'lesson': quiz.lesson,
+            'topic': quiz.lesson.topic,
+            'average': avg,
+            'attempts_count': attempts_count,
+            'student_count': student_count,
+            'highest_score': highest_score,
+            'lowest_score': lowest_score,
+            'status': quiz.status,
+        })
+
+    best_quiz = max(performance_by_quiz, key=lambda x: x['average']) if performance_by_quiz else None
+    most_failed_quiz = min(performance_by_quiz, key=lambda x: x['average']) if performance_by_quiz else None
+
+    return render(request, 'core/teacher_quiz_report.html', {
+        'performance_by_quiz': performance_by_quiz,
+        'best_quiz': best_quiz,
+        'most_failed_quiz': most_failed_quiz,
+    })
+
+
+@never_cache
+@login_required
+def teacher_overall_progress_report(request):
+    if request.user.role != 'teacher':
+        return redirect('login')
+
+    students = CustomUser.objects.filter(role='student', is_active=True)
+    lessons = Lesson.objects.all()
+    quizzes = Quiz.objects.filter(status='published')
+    attempts = QuizAttempt.objects.select_related('student', 'quiz').all()
+    lesson_progress = LessonProgress.objects.filter(completed=True)
+
+    total_students = students.count()
+    total_lessons = lessons.count()
+    total_quizzes = quizzes.count()
+
+    total_completed_lessons = lesson_progress.count()
+    total_quiz_attempts = attempts.count()
+
+    overall_average_score = round(
+        sum(a.percentage for a in attempts) / attempts.count(), 2
+    ) if attempts.exists() else 0
+
+    student_progress_rows = []
+
+    for student in students:
+        completed_lessons = LessonProgress.objects.filter(
+            student=student,
+            completed=True
+        ).count()
+
+        student_attempts = attempts.filter(student=student)
+
+        quizzes_taken = student_attempts.count()
+
+        average_score = round(
+            sum(a.percentage for a in student_attempts) / student_attempts.count(), 2
+        ) if student_attempts.exists() else 0
+
+        lesson_completion_rate = round(
+            (completed_lessons / total_lessons) * 100, 2
+        ) if total_lessons > 0 else 0
+
+        if average_score < 50:
+            progress_status = "At Risk"
+        elif average_score < 75:
+            progress_status = "Needs Improvement"
+        else:
+            progress_status = "On Track"
+
+        student_progress_rows.append({
+            'student': student,
+            'completed_lessons': completed_lessons,
+            'quizzes_taken': quizzes_taken,
+            'average_score': average_score,
+            'lesson_completion_rate': lesson_completion_rate,
+            'progress_status': progress_status,
+        })
+
+    most_active_student = max(
+        student_progress_rows,
+        key=lambda x: x['completed_lessons'],
+        default=None
+    )
+
+    best_progress_student = max(
+        student_progress_rows,
+        key=lambda x: x['average_score'],
+        default=None
+    )
+
+    return render(request, 'core/teacher_overall_progress_report.html', {
+        'total_students': total_students,
+        'total_lessons': total_lessons,
+        'total_quizzes': total_quizzes,
+        'total_completed_lessons': total_completed_lessons,
+        'total_quiz_attempts': total_quiz_attempts,
+        'overall_average_score': overall_average_score,
+        'student_progress_rows': student_progress_rows,
+        'most_active_student': most_active_student,
+        'best_progress_student': best_progress_student,
+    })

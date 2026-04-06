@@ -1,0 +1,58 @@
+<h1>Overall Progress Report</h1>
+
+<p><a href="{% url 'teacher_performance_reports' %}">← Back to Performance & Reports</a></p>
+
+<hr>
+
+<p><strong>Total Students:</strong> {{ total_students }}</p>
+<p><strong>Total Lessons:</strong> {{ total_lessons }}</p>
+<p><strong>Total Published Quizzes:</strong> {{ total_quizzes }}</p>
+<p><strong>Total Completed Lessons:</strong> {{ total_completed_lessons }}</p>
+<p><strong>Total Quiz Attempts:</strong> {{ total_quiz_attempts }}</p>
+<p><strong>Overall Average Score:</strong> {{ overall_average_score }}%</p>
+
+<p><strong>Most Active Student:</strong>
+    {% if most_active_student %}
+        {{ most_active_student.student.first_name }} {{ most_active_student.student.last_name }}
+        ({{ most_active_student.completed_lessons }} lessons completed)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<p><strong>Best Overall Progress:</strong>
+    {% if best_progress_student %}
+        {{ best_progress_student.student.first_name }} {{ best_progress_student.student.last_name }}
+        ({{ best_progress_student.average_score }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<hr>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Student</th>
+        <th>Completed Lessons</th>
+        <th>Lesson Completion Rate</th>
+        <th>Quizzes Taken</th>
+        <th>Average Score</th>
+        <th>Status</th>
+    </tr>
+
+    {% for item in student_progress_rows %}
+    <tr>
+        <td>{{ item.student.first_name }} {{ item.student.last_name }}</td>
+        <td>{{ item.completed_lessons }}</td>
+        <td>{{ item.lesson_completion_rate }}%</td>
+        <td>{{ item.quizzes_taken }}</td>
+        <td>{{ item.average_score }}%</td>
+        <td>{{ item.progress_status }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">No progress data available.</td>
+    </tr>
+    {% endfor %}
+</table>

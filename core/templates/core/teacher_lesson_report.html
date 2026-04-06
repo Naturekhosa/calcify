@@ -1,0 +1,47 @@
+<h1>Lesson Report</h1>
+
+<p><a href="{% url 'teacher_performance_reports' %}">← Back to Performance & Reports</a></p>
+
+<hr>
+
+<p><strong>Best Performing Lesson:</strong>
+    {% if best_lesson %}
+        {{ best_lesson.lesson.title }} ({{ best_lesson.average }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<p><strong>Weakest Lesson:</strong>
+    {% if weakest_lesson %}
+        {{ weakest_lesson.lesson.title }} ({{ weakest_lesson.average }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<hr>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Lesson</th>
+        <th>Topic</th>
+        <th>Average Score</th>
+        <th>Quizzes Taken</th>
+        <th>Students Attempted</th>
+    </tr>
+
+    {% for item in performance_by_lesson %}
+    <tr>
+        <td>{{ item.lesson.title }}</td>
+        <td>{{ item.topic.name }}</td>
+        <td>{{ item.average }}%</td>
+        <td>{{ item.quizzes_taken }}</td>
+        <td>{{ item.student_count }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No lesson data available.</td>
+    </tr>
+    {% endfor %}
+</table>

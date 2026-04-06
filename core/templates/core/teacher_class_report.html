@@ -1,0 +1,27 @@
+<h1>Class Report</h1>
+
+<p><a href="{% url 'teacher_performance_reports' %}">← Back to Performance & Reports</a></p>
+
+<hr>
+
+<p><strong>Total Students:</strong> {{ total_students }}</p>
+<p><strong>Average Class Score:</strong> {{ average_class_score }}%</p>
+<p><strong>Total Quizzes Taken:</strong> {{ total_quizzes_taken }}</p>
+<p><strong>Students At Risk:</strong> {{ students_at_risk }}</p>
+<p><strong>Top Performer:</strong> {{ top_performer }}</p>
+
+<p><strong>Best Performing Topic:</strong>
+    {% if best_topic %}
+        {{ best_topic.name }} ({{ best_topic.average }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>
+
+<p><strong>Weakest Topic:</strong>
+    {% if weakest_topic %}
+        {{ weakest_topic.name }} ({{ weakest_topic.average }}%)
+    {% else %}
+        No data
+    {% endif %}
+</p>

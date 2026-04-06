@@ -64,6 +64,12 @@ urlpatterns = [
     path('teacher/performance-reports/', views.teacher_performance_reports, name='teacher_performance_reports'),
 
 
+    path('teacher/reports/students/', views.teacher_student_reports, name='teacher_student_reports'),
+    path('teacher/reports/class/', views.teacher_class_report, name='teacher_class_report'),
+    path('teacher/reports/topics/', views.teacher_topic_report, name='teacher_topic_report'),
+    path('teacher/reports/lessons/', views.teacher_lesson_report, name='teacher_lesson_report'),
+    path('teacher/reports/quizzes/', views.teacher_quiz_report, name='teacher_quiz_report'),
+    path('teacher/reports/overall-progress/', views.teacher_overall_progress_report, name='teacher_overall_progress_report'),
 
 
 ]

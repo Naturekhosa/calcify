@@ -91,6 +91,36 @@
     <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
         <h3>{{ report.title }}</h3>
         <p>{{ report.description }}</p>
-        <button type="button">View</button>
+
+        {% if report.title == "Student Report" %}
+            <a href="{% url 'teacher_student_reports' %}">
+                <button type="button">View</button>
+            </a>
+        {% elif report.title == "Class Report" %}
+            <a href="{% url 'teacher_class_report' %}">
+                <button type="button">View</button>
+            </a>
+        {% elif report.title == "Topic Report" %}
+            <a href="{% url 'teacher_topic_report' %}">
+                <button type="button">View</button>
+            </a>
+        {% elif report.title == "Lesson Report" %}
+            <a href="{% url 'teacher_lesson_report' %}">
+                <button type="button">View</button>
+            </a>
+
+        {% elif report.title == "Quiz Report" %}
+            <a href="{% url 'teacher_quiz_report' %}">
+                <button type="button">View</button>
+            </a>
+
+        {% elif report.title == "Overall Progress Report" %}
+            <a href="{% url 'teacher_overall_progress_report' %}">
+                <button type="button">View</button>
+            </a>
+            
+        {% else %}
+            <button type="button" disabled>Coming Soon</button>
+        {% endif %}
     </div>
 {% endfor %}
