@@ -11,15 +11,24 @@
 
 <div class="max-w-3xl mx-auto px-6 py-8">
 
-    <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-blue-700">
-            {{ quiz.title }}
-        </h1>
-        <p class="text-slate-600 mt-2">
-            Answer all questions and submit your quiz.
-        </p>
-    </div>
+
+    <!-- Back Link -->
+    <a href="{% url 'student_quizzes' %}"
+       class="inline-block text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline mb-3">
+        ← Back to My Quizzes
+    </a>
+
+    <!-- Title -->
+    <h1 class="text-3xl font-bold text-blue-700">
+        {{ quiz.title }}
+    </h1>
+
+    <p class="text-slate-600 mt-2">
+        Answer all questions and submit your quiz.
+    </p>
+
+</div>
 
     <!-- Quiz Form -->
     <form method="post" class="space-y-6">

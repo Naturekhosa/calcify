@@ -76,12 +76,22 @@
     {% endif %}
 
     <!-- Action -->
-    <div class="flex justify-start">
-        <a href="{% url 'take_quiz' quiz.id %}"
-           class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-md">
-            Reattempt Quiz
-        </a>
-    </div>
+    <!-- Actions -->
+<div class="flex flex-wrap gap-3">
+
+    <!-- Back -->
+    <a href="{% url 'student_quizzes' %}"
+       class="px-6 py-3 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition shadow-sm">
+        ← Back to My Quizzes
+    </a>
+
+    <!-- Reattempt -->
+    <a href="{% url 'take_quiz' quiz.id %}"
+       class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-md">
+        Reattempt Quiz
+    </a>
+
+</div>
 
 </div>
 

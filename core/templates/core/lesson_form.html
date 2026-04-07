@@ -5,6 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page_title }} | Calcify</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+    /* Visible inputs */
+    input, select, textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 2px solid #cbd5e1; /* stronger border */
+        border-radius: 10px;
+        background-color: #ffffff;
+        color: #0f172a;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    /* Focus state */
+    input:focus, select:focus, textarea:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Labels */
+    label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #334155;
+    }
+
+    /* Spacing from Django form */
+    form p {
+        margin-bottom: 16px;
+    }
+
+    /* Better textarea for maths/content */
+    textarea {
+        min-height: 200px;
+        line-height: 1.6;
+    }
+</style>
 </head>
 
 <body class="bg-gray-100 text-gray-800">
