@@ -47,13 +47,13 @@
         <div class="bg-gradient-to-br from-purple-500 to-violet-600 text-white rounded-2xl shadow-md p-6">
             <p class="text-sm text-purple-100">Percentage</p>
             <p class="text-3xl font-bold mt-2">
-                {{ attempt.percentage }}%
+                {{ attempt.percentage|floatformat:2 }}%
             </p>
         </div>
     </div>
 
     <!-- Improvement Section -->
-    {% if attempt.previous_score %}
+    {% if attempt.previous_score or attempt.previous_score == 0 %}
     <div class="bg-indigo-50 border border-indigo-100 rounded-2xl shadow-sm p-6 mb-6">
         <h2 class="text-xl font-bold text-indigo-700 mb-4">Progress Comparison</h2>
 
@@ -75,23 +75,66 @@
     </div>
     {% endif %}
 
-    <!-- Action -->
+    <!-- Answer Review -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-slate-800 mb-4">Answer Review</h2>
+
+        <div class="space-y-4">
+            {% for answer in answers %}
+            <div class="border border-slate-200 rounded-xl p-4">
+                <p class="font-semibold text-slate-800 mb-3">
+                    Question {{ forloop.counter }}: {{ answer.question.question_text }}
+                </p>
+
+                <div class="space-y-2 text-sm">
+                    <p>
+                        <span class="font-semibold text-slate-700">Your Answer:</span>
+                        {% if answer.selected_choice %}
+                            <span class="{% if answer.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ answer.selected_choice.choice_text }}
+                            </span>
+                        {% else %}
+                            <span class="text-slate-500">No answer selected</span>
+                        {% endif %}
+                    </p>
+
+                    <p>
+                        <span class="font-semibold text-slate-700">Correct Answer:</span>
+                        {% if answer.correct_choice %}
+                            <span class="text-green-600">{{ answer.correct_choice.choice_text }}</span>
+                        {% else %}
+                            <span class="text-slate-500">No correct answer set</span>
+                        {% endif %}
+                    </p>
+
+                    <p>
+                        <span class="font-semibold text-slate-700">Result:</span>
+                        {% if answer.is_correct %}
+                            <span class="text-green-600 font-medium">Correct</span>
+                        {% else %}
+                            <span class="text-red-600 font-medium">Incorrect</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-slate-500">No answer review available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
     <!-- Actions -->
-<div class="flex flex-wrap gap-3">
+    <div class="flex flex-wrap gap-3">
+        <a href="{% url 'student_quizzes' %}"
+           class="px-6 py-3 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition shadow-sm">
+            ← Back to My Quizzes
+        </a>
 
-    <!-- Back -->
-    <a href="{% url 'student_quizzes' %}"
-       class="px-6 py-3 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition shadow-sm">
-        ← Back to My Quizzes
-    </a>
-
-    <!-- Reattempt -->
-    <a href="{% url 'take_quiz' quiz.id %}"
-       class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-md">
-        Reattempt Quiz
-    </a>
-
-</div>
+        <a href="{% url 'take_quiz' quiz.id %}"
+           class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-md">
+            Reattempt Quiz
+        </a>
+    </div>
 
 </div>
 

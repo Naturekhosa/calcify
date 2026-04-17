@@ -14,6 +14,7 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
     
+
 class Topic(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
@@ -92,12 +93,36 @@ class QuizAttempt(models.Model):
         max_length=20,
         blank=True,
         null=True
-    )  # improved / same / decreased
+    )  # Improved / Same / Decreased
 
     date_attempted = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.student.username} - {self.quiz.title}"
+
+
+class StudentAnswer(models.Model):
+    attempt = models.ForeignKey(QuizAttempt, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    selected_choice = models.ForeignKey(
+        Choice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='selected_answers'
+    )
+    correct_choice = models.ForeignKey(
+        Choice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='correct_answers'
+    )
+    is_correct = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.attempt.student.username} - {self.question.question_text[:30]}"
+
 
 class LessonProgress(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -110,4 +135,3 @@ class LessonProgress(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.lesson.title}"
-    

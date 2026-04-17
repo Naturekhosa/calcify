@@ -4,8 +4,7 @@ from django.views.decorators.cache import never_cache
 from django.http import HttpResponseForbidden
 from django.db.models import Q
 
-
-from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice, QuizAttempt, LessonProgress
+from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice, QuizAttempt, LessonProgress, StudentAnswer
 from .forms import (
     StudentRegistrationForm,
     TopicForm,
@@ -96,8 +95,10 @@ def teacher_dashboard(request):
     for student in students:
         student_attempts = attempts.filter(student=student)
         if student_attempts.exists():
-            avg = sum(a.percentage for a in student_attempts) / student_attempts.count()
-            student_averages.append((student, round(avg, 2)))
+            avg = round(
+                sum(a.percentage for a in student_attempts) / student_attempts.count(), 2
+            )
+            student_averages.append((student, avg))
 
     students_at_risk = sum(1 for _, avg in student_averages if avg < 50)
 
@@ -645,6 +646,7 @@ def student_lesson_detail(request, lesson_id):
 
     return render(request, 'core/student_lesson_detail.html', context)
 
+
 @never_cache
 @login_required
 def student_quizzes(request):
@@ -653,10 +655,9 @@ def student_quizzes(request):
 
     quizzes = Quiz.objects.filter(status='published').select_related('lesson__topic')
 
-    attempts = QuizAttempt.objects.filter(student=request.user)
+    attempts = QuizAttempt.objects.filter(student=request.user).select_related('quiz')
     attempts_dict = {a.quiz.id: a for a in attempts}
 
-    # Attach attempt to each quiz
     for quiz in quizzes:
         quiz.attempt = attempts_dict.get(quiz.id)
 
@@ -665,6 +666,7 @@ def student_quizzes(request):
     }
 
     return render(request, 'core/student_quizzes.html', context)
+
 
 @never_cache
 @login_required
@@ -679,45 +681,62 @@ def take_quiz(request, quiz_id):
         score = 0
         total = 0
 
-        for question in questions:
-            selected = request.POST.get(str(question.id))
-            total += question.marks
-
-            if selected:
-                choice = Choice.objects.get(id=selected)
-                if choice.is_correct:
-                    score += question.marks
-
-        percentage = (score / total) * 100 if total > 0 else 0
-
-        # Get previous attempt
         attempt, created = QuizAttempt.objects.get_or_create(
             student=request.user,
             quiz=quiz,
             defaults={
-                'score': score,
-                'total_marks': total,
-                'percentage': percentage
+                'score': 0,
+                'total_marks': 0,
+                'percentage': 0
             }
         )
 
+        previous = attempt.score if not created else None
+
+        attempt.answers.all().delete()
+
+        for question in questions:
+            selected_id = request.POST.get(str(question.id))
+            total += question.marks
+
+            selected_choice = None
+            correct_choice = question.choices.filter(is_correct=True).first()
+            is_correct = False
+
+            if selected_id:
+                selected_choice = question.choices.filter(id=selected_id).first()
+
+                if selected_choice and selected_choice.is_correct:
+                    score += question.marks
+                    is_correct = True
+
+            StudentAnswer.objects.create(
+                attempt=attempt,
+                question=question,
+                selected_choice=selected_choice,
+                correct_choice=correct_choice,
+                is_correct=is_correct
+            )
+
+        percentage = round((score / total) * 100, 2) if total > 0 else 0
+
+        attempt.score = score
+        attempt.total_marks = total
+        attempt.percentage = percentage
+
         if not created:
-            previous = attempt.score
+            if previous is not None:
+                if score > previous:
+                    change = "Improved"
+                elif score == previous:
+                    change = "Same"
+                else:
+                    change = "Decreased"
 
-            # Determine improvement
-            if score > previous:
-                change = "Improved"
-            elif score == previous:
-                change = "Same"
-            else:
-                change = "Decreased"
+                attempt.previous_score = previous
+                attempt.performance_change = change
 
-            attempt.previous_score = previous
-            attempt.score = score
-            attempt.total_marks = total
-            attempt.percentage = percentage
-            attempt.performance_change = change
-            attempt.save()
+        attempt.save()
 
         return redirect('quiz_result', quiz_id=quiz.id)
 
@@ -726,6 +745,7 @@ def take_quiz(request, quiz_id):
         'questions': questions
     })
 
+
 @never_cache
 @login_required
 def quiz_result(request, quiz_id):
@@ -733,12 +753,15 @@ def quiz_result(request, quiz_id):
         return redirect('login')
 
     quiz = get_object_or_404(Quiz, id=quiz_id)
-    attempt = QuizAttempt.objects.get(student=request.user, quiz=quiz)
+    attempt = get_object_or_404(QuizAttempt, student=request.user, quiz=quiz)
+    answers = attempt.answers.select_related('question', 'selected_choice', 'correct_choice')
 
     return render(request, 'core/quiz_result.html', {
         'quiz': quiz,
-        'attempt': attempt
+        'attempt': attempt,
+        'answers': answers,
     })
+
 
 @never_cache
 @login_required
@@ -756,6 +779,7 @@ def mark_lesson_complete(request, lesson_id):
     progress.save()
 
     return redirect('student_lesson_detail', lesson_id=lesson.id)
+
 
 @never_cache
 @login_required
@@ -811,9 +835,8 @@ def student_progress(request):
     ) if all_attempts.exists() else 0
 
     latest_attempt = all_attempts.order_by('-date_attempted').first()
-    latest_score = latest_attempt.percentage if latest_attempt else 0
+    latest_score = round(latest_attempt.percentage, 2) if latest_attempt else 0
 
-    # Progress per topic
     topic_progress = []
     for topic in Topic.objects.all():
         topic_lessons = Lesson.objects.filter(topic=topic)
@@ -829,10 +852,8 @@ def student_progress(request):
             'total': topic_lessons.count(),
         })
 
-    # Quiz performance list
     quiz_performance = attempts.order_by('-date_attempted')
 
-    # Performance by topic
     performance_by_topic = []
     for topic in Topic.objects.all():
         topic_attempts = QuizAttempt.objects.filter(student=student, quiz__lesson__topic=topic)
@@ -845,7 +866,6 @@ def student_progress(request):
                 'average': avg,
             })
 
-    # Weak areas
     weak_topics = [item for item in performance_by_topic if item['average'] < 50]
     weak_quizzes = QuizAttempt.objects.filter(student=student, percentage__lt=50)
 
@@ -887,9 +907,6 @@ def teacher_performance_reports(request):
     lessons = Lesson.objects.select_related('topic').all()
     quizzes = Quiz.objects.all()
 
-    # -------------------------
-    # OVERVIEW
-    # -------------------------
     average_class_score = round(
         sum(a.percentage for a in attempts) / attempts.count(), 2
     ) if attempts.exists() else 0
@@ -908,13 +925,14 @@ def teacher_performance_reports(request):
         else:
             avg_score = 0
 
-        # weak topic
         weak_topic = "None"
         topic_scores = []
         for topic in topics:
             topic_attempts = student_attempts.filter(quiz__lesson__topic=topic)
             if topic_attempts.exists():
-                avg_topic = sum(a.percentage for a in topic_attempts) / topic_attempts.count()
+                avg_topic = round(
+                    sum(a.percentage for a in topic_attempts) / topic_attempts.count(), 2
+                )
                 topic_scores.append((topic.name, avg_topic))
 
         if topic_scores:
@@ -936,7 +954,6 @@ def teacher_performance_reports(request):
             'status': status,
         })
 
-    # top performer
     if student_rows:
         top_performer_row = max(student_rows, key=lambda x: x['avg_score'])
         top_performer = f"{top_performer_row['student'].first_name} {top_performer_row['student'].last_name} ({top_performer_row['avg_score']}%)"
@@ -945,9 +962,6 @@ def teacher_performance_reports(request):
 
     students_at_risk = len([row for row in student_rows if row['status'] == 'At Risk'])
 
-    # -------------------------
-    # ANALYTICS
-    # -------------------------
     performance_by_topic = []
     for topic in topics:
         topic_attempts = attempts.filter(quiz__lesson__topic=topic)
@@ -990,9 +1004,6 @@ def teacher_performance_reports(request):
 
     most_failed_quiz = min(quiz_failure_rates, key=lambda x: x[1]) if quiz_failure_rates else None
 
-    # -------------------------
-    # REPORTS
-    # -------------------------
     report_cards = [
         {'title': 'Student Report', 'description': 'View student-by-student performance summaries.'},
         {'title': 'Class Report', 'description': 'View overall class performance and averages.'},
@@ -1020,7 +1031,6 @@ def teacher_performance_reports(request):
     }
 
     return render(request, 'core/teacher_performance_reports.html', context)
-
 
 
 @never_cache
@@ -1052,7 +1062,9 @@ def teacher_student_reports(request):
         for topic in topics:
             topic_attempts = student_attempts.filter(quiz__lesson__topic=topic)
             if topic_attempts.exists():
-                avg_topic = sum(a.percentage for a in topic_attempts) / topic_attempts.count()
+                avg_topic = round(
+                    sum(a.percentage for a in topic_attempts) / topic_attempts.count(), 2
+                )
                 topic_scores.append((topic.name, avg_topic))
 
         if topic_scores:
@@ -1261,8 +1273,8 @@ def teacher_quiz_report(request):
             )
             attempts_count = quiz_attempts.count()
             student_count = quiz_attempts.values('student').distinct().count()
-            highest_score = max(a.percentage for a in quiz_attempts)
-            lowest_score = min(a.percentage for a in quiz_attempts)
+            highest_score = round(max(a.percentage for a in quiz_attempts), 2)
+            lowest_score = round(min(a.percentage for a in quiz_attempts), 2)
         else:
             avg = 0
             attempts_count = 0
