@@ -125,13 +125,20 @@
 
     <!-- Actions -->
     <div class="flex flex-wrap gap-3">
-        <a href="{% url 'student_quizzes' %}"
-           class="px-6 py-3 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition shadow-sm">
-            ← Back to My Quizzes
-        </a>
+        {% if next == 'lesson' %}
+            <a href="{% url 'student_lesson_detail' quiz.lesson.id %}"
+                class="px-6 py-3 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition shadow-sm">
+                ← Back to Lesson
+            </a>
+        {% else %}
+            <a href="{% url 'student_quizzes' %}"
+                class="px-6 py-3 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition shadow-sm">
+                ← Back to My Quizzes
+            </a>
+        {% endif %}
 
-        <a href="{% url 'take_quiz' quiz.id %}"
-           class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-md">
+        <a href="{% url 'take_quiz' quiz.id %}?next={{ next }}"
+            class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-md">
             Reattempt Quiz
         </a>
     </div>

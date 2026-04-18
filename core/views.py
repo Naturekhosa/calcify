@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.http import HttpResponseForbidden
 from django.db.models import Q
+from django.urls import reverse
 
 from .models import CustomUser, Topic, Lesson, Quiz, Question, Choice, QuizAttempt, LessonProgress, StudentAnswer
 from .forms import (
@@ -48,16 +49,29 @@ def student_dashboard(request):
     if request.user.role != 'student':
         return redirect('login')
 
+    student = request.user
+
+    # Lessons
     total_lessons = Lesson.objects.count()
-    total_quizzes = Quiz.objects.count()
+    completed_lessons = LessonProgress.objects.filter(
+        student=student,
+        completed=True
+    ).count()
+
+    # Quizzes (only published ones)
+    total_quizzes = Quiz.objects.filter(status='published').count()
+    completed_quizzes = QuizAttempt.objects.filter(
+        student=student
+    ).count()
 
     context = {
         'total_lessons': total_lessons,
+        'completed_lessons': completed_lessons,
         'total_quizzes': total_quizzes,
+        'completed_quizzes': completed_quizzes,
     }
 
     return render(request, 'core/student_dashboard.html', context)
-
 
 @never_cache
 @login_required
@@ -678,6 +692,8 @@ def take_quiz(request, quiz_id):
     questions = quiz.questions.all().prefetch_related('choices')
 
     if request.method == 'POST':
+        source = request.POST.get('next', 'student_quizzes')
+
         score = 0
         total = 0
 
@@ -738,13 +754,15 @@ def take_quiz(request, quiz_id):
 
         attempt.save()
 
-        return redirect('quiz_result', quiz_id=quiz.id)
+        return redirect(f"{reverse('quiz_result', args=[quiz.id])}?next={source}")
+
+    source = request.GET.get('next', 'student_quizzes')
 
     return render(request, 'core/take_quiz.html', {
         'quiz': quiz,
-        'questions': questions
+        'questions': questions,
+        'next': source,
     })
-
 
 @never_cache
 @login_required
@@ -756,10 +774,13 @@ def quiz_result(request, quiz_id):
     attempt = get_object_or_404(QuizAttempt, student=request.user, quiz=quiz)
     answers = attempt.answers.select_related('question', 'selected_choice', 'correct_choice')
 
+    source = request.GET.get('next', 'student_quizzes')
+
     return render(request, 'core/quiz_result.html', {
         'quiz': quiz,
         'attempt': attempt,
         'answers': answers,
+        'next': source,
     })
 
 
@@ -775,12 +796,11 @@ def mark_lesson_complete(request, lesson_id):
         student=request.user,
         lesson=lesson
     )
-    progress.completed = True
+
+    progress.completed = not progress.completed
     progress.save()
 
     return redirect('student_lesson_detail', lesson_id=lesson.id)
-
-
 @never_cache
 @login_required
 def student_progress(request):

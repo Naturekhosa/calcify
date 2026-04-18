@@ -66,12 +66,13 @@
         </h2>
 
         {% if progress.completed %}
-            <p class="text-green-600 font-medium">
-                ✅ Lesson completed
-            </p>
-        {% else %}
             <a href="{% url 'mark_lesson_complete' lesson.id %}"
                class="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                ✅ Lesson Completed - Click to Undo
+            </a>
+        {% else %}
+            <a href="{% url 'mark_lesson_complete' lesson.id %}"
+               class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                 Mark as Complete
             </a>
         {% endif %}
@@ -96,7 +97,7 @@
 
                         <div>
                             {% if quiz.status == 'published' %}
-                                <a href="{% url 'take_quiz' quiz.id %}"
+                                <a href="{% url 'take_quiz' quiz.id %}?next=lesson"
                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                                     Start Quiz
                                 </a>

@@ -7,95 +7,107 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 text-gray-800">
 
 <div class="max-w-6xl mx-auto p-6">
 
     <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex justify-between items-center mb-10">
         <div>
-            <h1 class="text-2xl font-bold text-blue-700">Calcify</h1>
-            <p class="text-sm text-gray-600">Welcome, {{ request.user.first_name }}</p>
+            <h1 class="text-3xl font-bold text-blue-700">Calcify</h1>
+            <p class="text-sm text-slate-600 mt-1">
+                Welcome back, {{ request.user.first_name }}
+            </p>
         </div>
 
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
-            <button class="px-4 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
+            <button class="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-md hover:opacity-90 transition">
                 Logout
             </button>
         </form>
     </div>
 
     <!-- Student Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-600">
-            <p class="text-sm text-gray-600">Total Students</p>
-            <p class="text-2xl font-bold">{{ total_students }}</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
+
+        <div class="bg-white/80 backdrop-blur p-5 rounded-2xl shadow-lg border-l-4 border-blue-600">
+            <p class="text-sm text-slate-500">Total Students</p>
+            <p class="text-3xl font-bold text-blue-700 mt-1">{{ total_students }}</p>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-yellow-500">
-            <p class="text-sm text-gray-600">Pending Approval</p>
-            <p class="text-2xl font-bold text-yellow-600">{{ pending_count }}</p>
+        <div class="bg-white/80 backdrop-blur p-5 rounded-2xl shadow-lg border-l-4 border-yellow-500">
+            <p class="text-sm text-slate-500">Pending Approval</p>
+            <p class="text-3xl font-bold text-yellow-600 mt-1">{{ pending_count }}</p>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-green-600">
-            <p class="text-sm text-gray-600">Active Students</p>
-            <p class="text-2xl font-bold text-green-700">{{ active_count }}</p>
+        <div class="bg-white/80 backdrop-blur p-5 rounded-2xl shadow-lg border-l-4 border-green-600">
+            <p class="text-sm text-slate-500">Active Students</p>
+            <p class="text-3xl font-bold text-green-700 mt-1">{{ active_count }}</p>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-red-600">
-            <p class="text-sm text-gray-600">Deactivated Students</p>
-            <p class="text-2xl font-bold text-red-600">{{ deactivated_count }}</p>
+        <div class="bg-white/80 backdrop-blur p-5 rounded-2xl shadow-lg border-l-4 border-red-600">
+            <p class="text-sm text-slate-500">Deactivated</p>
+            <p class="text-3xl font-bold text-red-600 mt-1">{{ deactivated_count }}</p>
         </div>
+
     </div>
 
     <!-- Main Actions -->
-    <div class="grid md:grid-cols-3 gap-6 mb-8">
+    <div class="grid md:grid-cols-3 gap-6 mb-10">
 
         <a href="{% url 'manage_students' %}" 
-           class="block bg-white p-6 rounded-xl shadow-md border hover:shadow-lg hover:-translate-y-1 transition transform cursor-pointer">
-            <h2 class="font-semibold mb-2 text-blue-700">Manage Students</h2>
-            <p class="text-sm text-gray-600">Approve, activate, or remove students</p>
+           class="block bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition transform">
+            <h2 class="font-semibold text-lg mb-2">Manage Students</h2>
+            <p class="text-sm opacity-90">Approve, activate, or remove students</p>
         </a>
 
         <a href="{% url 'manage_lessons' %}" 
-           class="block bg-white p-6 rounded-xl shadow-md border hover:shadow-lg hover:-translate-y-1 transition transform cursor-pointer">
-            <h2 class="font-semibold mb-2 text-blue-700">Manage Lessons</h2>
-            <p class="text-sm text-gray-600">Create topics and lesson content</p>
+           class="block bg-gradient-to-br from-purple-500 to-violet-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition transform">
+            <h2 class="font-semibold text-lg mb-2">Manage Lessons</h2>
+            <p class="text-sm opacity-90">Create topics and lesson content</p>
         </a>
 
         <a href="{% url 'manage_quizzes' %}" 
-           class="block bg-white p-6 rounded-xl shadow-md border hover:shadow-lg hover:-translate-y-1 transition transform cursor-pointer">
-            <h2 class="font-semibold mb-2 text-blue-700">Manage Quizzes</h2>
-            <p class="text-sm text-gray-600">Create quizzes and questions</p>
+           class="block bg-gradient-to-br from-green-500 to-emerald-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition transform">
+            <h2 class="font-semibold text-lg mb-2">Manage Quizzes</h2>
+            <p class="text-sm opacity-90">Create quizzes and questions</p>
         </a>
 
     </div>
 
     <!-- Performance -->
-    <div class="bg-white p-6 rounded-xl shadow-md border">
-        <h2 class="text-lg font-semibold mb-4 text-blue-700">Performance Snapshot</h2>
+    <div class="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-lg border">
+        <h2 class="text-xl font-bold mb-5 text-blue-700">Performance Snapshot</h2>
 
         <div class="grid md:grid-cols-3 gap-5">
-            <div class="p-4 bg-gray-50 rounded-lg">
-                <p class="text-sm text-gray-600">Average Score</p>
-                <p class="font-bold text-xl text-blue-700">{{ average_class_score }}%</p>
+
+            <div class="p-5 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl">
+                <p class="text-sm text-slate-600">Average Score</p>
+                <p class="font-bold text-2xl text-blue-700 mt-1">
+                    {{ average_class_score }}%
+                </p>
             </div>
 
-            <div class="p-4 bg-gray-50 rounded-lg">
-                <p class="text-sm text-gray-600">Students At Risk</p>
-                <p class="font-bold text-xl text-red-600">{{ students_at_risk }}</p>
+            <div class="p-5 bg-gradient-to-br from-red-100 to-red-200 rounded-xl">
+                <p class="text-sm text-slate-600">Students At Risk</p>
+                <p class="font-bold text-2xl text-red-600 mt-1">
+                    {{ students_at_risk }}
+                </p>
             </div>
 
-            <div class="p-4 bg-gray-50 rounded-lg">
-                <p class="text-sm text-gray-600">Top Performer</p>
-                <p class="font-semibold text-green-700">{{ top_performer }}</p>
+            <div class="p-5 bg-gradient-to-br from-green-100 to-green-200 rounded-xl">
+                <p class="text-sm text-slate-600">Top Performer</p>
+                <p class="font-semibold text-green-700 mt-1">
+                    {{ top_performer }}
+                </p>
             </div>
+
         </div>
 
         <a href="{% url 'teacher_performance_reports' %}" 
-           class="inline-block mt-5 px-5 py-2 bg-blue-700 text-white rounded-lg shadow hover:bg-blue-800 transition">
-            View Full Reports
+           class="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-md hover:opacity-90 transition">
+            View Full Reports →
         </a>
     </div>
 

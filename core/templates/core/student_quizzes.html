@@ -65,7 +65,7 @@
 
                 <!-- Actions -->
                 <div class="flex gap-3">
-                    <a href="{% url 'take_quiz' quiz.id %}"
+                    <a href="{% url 'take_quiz' quiz.id %}?next=student_quizzes"
                        class="px-4 py-2 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition">
                         Reattempt
                     </a>
@@ -84,7 +84,7 @@
                     </p>
                 </div>
 
-                <a href="{% url 'take_quiz' quiz.id %}"
+                <a href="{% url 'take_quiz' quiz.id %}?next=student_quizzes"
                    class="inline-block px-4 py-2 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition">
                     Start Quiz
                 </a>
